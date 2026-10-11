@@ -23,6 +23,11 @@ class AppController {
 
     this.navItems = document.querySelectorAll('.nav-item');
     this.pageViews = document.querySelectorAll('.page-view');
+    this.bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+    this.sidebar = document.getElementById('app-sidebar') || document.querySelector('.sidebar');
+    this.sidebarBackdrop = document.getElementById('sidebar-backdrop');
+    this.btnMobileMenu = document.getElementById('btn-mobile-menu');
+    this.btnCloseSidebar = document.getElementById('btn-close-sidebar');
 
     this.modalLogin = document.getElementById('modal-login');
     this.modalCashOpen = document.getElementById('modal-cash-open');
@@ -42,18 +47,48 @@ class AppController {
   }
 
   bindEvents() {
-    // Window control buttons
-    document.getElementById('btn-win-min').addEventListener('click', () => window.api.window.minimize());
-    document.getElementById('btn-win-max').addEventListener('click', () => window.api.window.maximize());
-    document.getElementById('btn-win-close').addEventListener('click', () => window.api.window.close());
+    // Window control buttons (desktop Electron)
+    const btnWinMin = document.getElementById('btn-win-min');
+    const btnWinMax = document.getElementById('btn-win-max');
+    const btnWinClose = document.getElementById('btn-win-close');
+    if (btnWinMin) btnWinMin.addEventListener('click', () => window.api.window.minimize());
+    if (btnWinMax) btnWinMax.addEventListener('click', () => window.api.window.maximize());
+    if (btnWinClose) btnWinClose.addEventListener('click', () => window.api.window.close());
 
-    // Navigation switching
+    // Mobile Hamburger Menu & Drawer
+    if (this.btnMobileMenu) {
+      this.btnMobileMenu.addEventListener('click', () => this.toggleMobileSidebar(true));
+    }
+    if (this.btnCloseSidebar) {
+      this.btnCloseSidebar.addEventListener('click', () => this.toggleMobileSidebar(false));
+    }
+    if (this.sidebarBackdrop) {
+      this.sidebarBackdrop.addEventListener('click', () => this.toggleMobileSidebar(false));
+    }
+
+    // Navigation switching (Sidebar)
     this.navItems.forEach(item => {
       item.addEventListener('click', () => {
         const pageId = item.dataset.page;
         this.navigateToPage(pageId);
+        this.toggleMobileSidebar(false);
       });
     });
+
+    // Mobile Bottom Navigation Bar
+    if (this.bottomNavItems) {
+      this.bottomNavItems.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const pageId = btn.dataset.page;
+          if (pageId === 'more') {
+            this.toggleMobileSidebar(true);
+          } else {
+            this.navigateToPage(pageId);
+            this.toggleMobileSidebar(false);
+          }
+        });
+      });
+    }
 
     // Language Toggle
     const btnLang = document.getElementById('btn-lang-toggle');
@@ -295,14 +330,31 @@ class AppController {
     }
   }
 
+  toggleMobileSidebar(open) {
+    if (!this.sidebar) return;
+    const shouldOpen = open === undefined ? !this.sidebar.classList.contains('sidebar-open') : Boolean(open);
+    this.sidebar.classList.toggle('sidebar-open', shouldOpen);
+    if (this.sidebarBackdrop) {
+      this.sidebarBackdrop.classList.toggle('active', shouldOpen);
+    }
+  }
+
   navigateToPage(pageId) {
     this.navItems.forEach(n => {
       n.classList.toggle('active', n.dataset.page === pageId);
     });
 
+    if (this.bottomNavItems) {
+      this.bottomNavItems.forEach(b => {
+        b.classList.toggle('active', b.dataset.page === pageId);
+      });
+    }
+
     this.pageViews.forEach(p => {
       p.classList.toggle('active', p.id === `page-${pageId}`);
     });
+
+    this.toggleMobileSidebar(false);
 
     // Trigger page-specific data loader
     switch (pageId) {

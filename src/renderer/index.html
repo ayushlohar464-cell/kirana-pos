@@ -1,17 +1,28 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>KiranaPOS - Store Management & POS</title>
   <link rel="stylesheet" href="css/app.css">
   <link rel="stylesheet" href="css/print.css">
 </head>
 <body>
 
+  <!-- Backdrop overlay for mobile drawer -->
+  <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+
   <!-- Top App Header -->
   <header class="app-header">
     <div class="brand-section">
+      <!-- Mobile Hamburger Menu Button -->
+      <button id="btn-mobile-menu" class="mobile-menu-btn" title="मेनू उघडा (Menu)" aria-label="Toggle navigation menu">
+        ☰
+      </button>
       <div class="brand-logo">
         🛒 <span>KiranaPOS</span>
       </div>
@@ -48,8 +59,15 @@
 
   <!-- Main Container -->
   <div class="app-container">
-    <!-- Left Navigation Sidebar -->
-    <nav class="sidebar">
+    <!-- Left Navigation Sidebar / Mobile Drawer -->
+    <nav class="sidebar" id="app-sidebar">
+      <!-- Mobile Drawer Header -->
+      <div class="sidebar-mobile-header">
+        <div style="font-weight: 800; color: var(--accent-green); font-size: 16px; display: flex; align-items: center; gap: 6px;">
+          🛒 <span>KiranaPOS</span>
+        </div>
+        <button id="btn-close-sidebar" class="sidebar-close-btn" aria-label="Close menu">✕</button>
+      </div>
       <div class="nav-item active" data-page="pos">
         <span>⚡</span> <span>New Billing (POS)</span>
       </div>
@@ -270,7 +288,7 @@
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 0 24px 24px;">
+        <div class="dash-split-grid">
           <!-- Recent Sales Table -->
           <div class="stat-card" style="padding: 16px;">
             <div style="font-weight: 700; margin-bottom: 12px;">Recent Bills</div>
@@ -1232,6 +1250,30 @@
       </div>
     </div>
   </div>
+
+  <!-- Mobile Bottom Navigation Bar (App-like quick access on smartphones) -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="bottom-nav-item active" data-page="pos" title="बिलिंग (POS)">
+      <span class="b-icon">⚡</span>
+      <span class="b-label">बिलिंग</span>
+    </button>
+    <button class="bottom-nav-item" data-page="dashboard" title="डॅशबोर्ड">
+      <span class="b-icon">📊</span>
+      <span class="b-label">डॅशबोर्ड</span>
+    </button>
+    <button class="bottom-nav-item" data-page="products" title="उत्पादने">
+      <span class="b-icon">📦</span>
+      <span class="b-label">उत्पादने</span>
+    </button>
+    <button class="bottom-nav-item" data-page="customers" title="उधारी खाते">
+      <span class="b-icon">👥</span>
+      <span class="b-label">उधारी</span>
+    </button>
+    <button class="bottom-nav-item" id="btn-bottom-nav-more" data-page="more" title="अधिक मेनू">
+      <span class="b-icon">☰</span>
+      <span class="b-label">अधिक</span>
+    </button>
+  </nav>
 
   <!-- Hidden Printable Thermal Receipt Container -->
   <div id="receipt-print-container"></div>
