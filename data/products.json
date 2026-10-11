@@ -1,15 +1,7 @@
 [
   {
     "id": 1,
-    "barcode": "890103000001",
-    "name": "Aashirvaad Shudh Chakki Atta 5kg",
-    "name_mr": "आशीर्वाद आटा ५ किलो",
-    "selling_price": 240,
-    "mrp": 250,
-    "unit": "pkt"
-  },
-  {
-    "id": 2,
+    "quick_code": "1",
     "barcode": "890103000002",
     "name": "Madhur Pure Sugar 1kg",
     "name_mr": "मधुर साखर १ किलो",
@@ -18,7 +10,8 @@
     "unit": "kg"
   },
   {
-    "id": 3,
+    "id": 2,
+    "quick_code": "2",
     "barcode": "890103000003",
     "name": "Fortune Sunlite Sunflower Oil 1L",
     "name_mr": "फॉर्च्यून सूर्यफूल तेल १ लिटर",
@@ -27,7 +20,18 @@
     "unit": "pkt"
   },
   {
+    "id": 3,
+    "quick_code": "3",
+    "barcode": "890103000001",
+    "name": "Aashirvaad Shudh Chakki Atta 5kg",
+    "name_mr": "आशीर्वाद आटा ५ किलो",
+    "selling_price": 240,
+    "mrp": 250,
+    "unit": "pkt"
+  },
+  {
     "id": 4,
+    "quick_code": "4",
     "barcode": "890103000004",
     "name": "Tata Salt 1kg",
     "name_mr": "टाटा मीठ १ किलो",
@@ -37,6 +41,7 @@
   },
   {
     "id": 5,
+    "quick_code": "5",
     "barcode": "890103000005",
     "name": "Toor Dal Premium Desi 1kg",
     "name_mr": "तूर डाळ १ किलो",
@@ -46,15 +51,17 @@
   },
   {
     "id": 6,
-    "barcode": "890103000006",
-    "name": "Amul Butter 100g",
-    "name_mr": "अमूल बटर १०० ग्रॅम",
-    "selling_price": 58,
-    "mrp": 60,
-    "unit": "pcs"
+    "quick_code": "6",
+    "barcode": "8901030012345",
+    "name": "Tata Tea Gold 250g",
+    "name_mr": "टाटा चहा २५० ग्रॅम",
+    "selling_price": 130,
+    "mrp": 140,
+    "unit": "pkt"
   },
   {
     "id": 7,
+    "quick_code": "7",
     "barcode": "890103000007",
     "name": "Parle-G Gold Biscuit",
     "name_mr": "पारले-जी बिस्किट",
@@ -64,6 +71,17 @@
   },
   {
     "id": 8,
+    "quick_code": "8",
+    "barcode": "890103000006",
+    "name": "Amul Butter 100g",
+    "name_mr": "अमूल बटर १०० ग्रॅम",
+    "selling_price": 58,
+    "mrp": 60,
+    "unit": "pcs"
+  },
+  {
+    "id": 9,
+    "quick_code": "9",
     "barcode": "8901719134845",
     "name": "Maggi 2-Minute Noodles 70g",
     "name_mr": "मॅगी नूडल्स ७० ग्रॅम",
@@ -72,7 +90,8 @@
     "unit": "pkt"
   },
   {
-    "id": 9,
+    "id": 10,
+    "quick_code": "10",
     "barcode": "8850006962480",
     "name": "Colgate Dental Cream 100g",
     "name_mr": "कोलगेट टूथपेस्ट १०० ग्रॅम",
@@ -81,16 +100,8 @@
     "unit": "pcs"
   },
   {
-    "id": 10,
-    "barcode": "8901030383709",
-    "name": "Good Day Butter Cookies 100g",
-    "name_mr": "गुड डे बटर बिस्किट",
-    "selling_price": 25,
-    "mrp": 25,
-    "unit": "pkt"
-  },
-  {
     "id": 11,
+    "quick_code": "11",
     "barcode": "8901248100108",
     "name": "Dettol Bathing Soap 75g",
     "name_mr": "डेटॉल साबण ७५ ग्रॅम",
@@ -100,11 +111,12 @@
   },
   {
     "id": 12,
-    "barcode": "8901030012345",
-    "name": "Tata Tea Gold 250g",
-    "name_mr": "टाटा चहा २५० ग्रॅम",
-    "selling_price": 130,
-    "mrp": 140,
+    "quick_code": "12",
+    "barcode": "8901030383709",
+    "name": "Good Day Butter Cookies 100g",
+    "name_mr": "गुड डे बटर बिस्किट",
+    "selling_price": 25,
+    "mrp": 25,
     "unit": "pkt"
   }
 ]

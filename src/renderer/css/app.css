@@ -1293,3 +1293,174 @@ body {
   }
 }
 
+/* ================= BABA'S QUICK 1-TOUCH CODES ================= */
+.baba-quick-bar {
+  background: #111c30;
+  border-bottom: 1px solid var(--border-color);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.baba-quick-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #f59e0b;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.baba-quick-items {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.baba-code-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #f8fafc;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.baba-code-btn:hover {
+  background: #334155;
+  border-color: #f59e0b;
+  transform: translateY(-1px);
+}
+
+.baba-code-btn:active {
+  transform: translateY(1px);
+}
+
+.baba-code-num {
+  background: #f59e0b;
+  color: #000;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.baba-code-name {
+  font-weight: 600;
+}
+
+.baba-code-price {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.baba-badge-sm {
+  display: inline-block;
+  background: #f59e0b;
+  color: #000;
+  font-weight: 900;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-right: 4px;
+}
+
+.badge-quick-code {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  font-weight: 800;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+/* ================= BARCODE STICKER PREVIEW & MODAL ================= */
+.sticker-preview-wrapper {
+  background: #0f172a;
+  border: 1px dashed #475569;
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 140px;
+}
+
+.single-sticker-preview {
+  background: #ffffff;
+  color: #000000;
+  padding: 10px 14px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  text-align: center;
+  width: 220px;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.single-sticker-preview .stk-shop {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #1e293b;
+}
+
+.single-sticker-preview .stk-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #000;
+  margin: 3px 0;
+}
+
+.single-sticker-preview .stk-quick-tag {
+  background: #f59e0b;
+  color: #000;
+  font-size: 11px;
+  font-weight: 900;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.single-sticker-preview .stk-prices {
+  display: flex;
+  justify-content: space-around;
+  align-items: baseline;
+  font-size: 12px;
+  margin: 3px 0;
+  font-weight: 700;
+}
+
+.single-sticker-preview .stk-prices .stk-mrp {
+  color: #64748b;
+  text-decoration: line-through;
+}
+
+.single-sticker-preview .stk-prices .stk-sell {
+  color: #059669;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.single-sticker-preview svg {
+  width: 100%;
+  max-height: 48px;
+  margin-top: 2px;
+}
+

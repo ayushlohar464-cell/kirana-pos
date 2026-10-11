@@ -52,6 +52,37 @@ function getLocalIpAddress() {
 
 const PRODUCTS_FILE = path.join(__dirname, 'data/products.json');
 const SALES_FILE = path.join(__dirname, 'data/sales.json');
+const SETTINGS_FILE = path.join(__dirname, 'data/settings.json');
+
+const DEFAULT_SETTINGS = {
+  shop_name: 'Lohar Kirana Store',
+  shop_tagline: 'ताजा किराणा व दैनंदिन वस्तू',
+  shop_address: 'मेन मार्केट रोड',
+  shop_phone: '+91 98765 43210',
+  shop_gstin: '',
+  receipt_footer_msg: 'आमच्या दुकानात खरेदी केल्याबद्दल धन्यवाद! पुन्हा या.',
+  printer_width: '80mm',
+  printer_name: '',
+};
+
+function getSettings() {
+  try {
+    if (fs.existsSync(SETTINGS_FILE)) {
+      return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Error reading settings.json:', e);
+  }
+  return DEFAULT_SETTINGS;
+}
+
+function saveSettings(settings) {
+  try {
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving settings.json:', e);
+  }
+}
 
 function getProducts() {
   try {
@@ -108,10 +139,11 @@ function broadcastMessage(payloadObj) {
 
 function broadcastBarcode(barcode) {
   const products = getProducts();
-  const product = products.find(p => p.barcode === barcode);
+  const trimmed = String(barcode).trim();
+  const product = products.find(p => (p.quick_code && String(p.quick_code).trim() === trimmed) || p.barcode === trimmed);
   broadcastMessage({
     type: 'barcode_scan',
-    barcode: String(barcode).trim(),
+    barcode: trimmed,
     product: product || null,
     timestamp: Date.now(),
   });
@@ -222,9 +254,10 @@ async function handleRequest(req, res) {
         }
 
         const products = getProducts();
-        const product = products.find(p => p.barcode === barcode);
+        const trimmed = barcode.trim();
+        const product = products.find(p => (p.quick_code && String(p.quick_code).trim() === trimmed) || p.barcode === trimmed);
 
-        console.log(`[📱 Barcode Scanned]: ${barcode} -> ${product ? product.name : '(नवीन वस्तू / Uncatalogued)'}`);
+        console.log(`[📱 Barcode/Quick Code]: ${barcode} -> ${product ? product.name : '(नवीन वस्तू / Uncatalogued)'}`);
         broadcastBarcode(barcode);
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -296,6 +329,7 @@ async function handleRequest(req, res) {
         const invoiceNum = String(sales.length + 1).padStart(4, '0');
         const invoiceNo = `INV-${currentYear}-${invoiceNum}`;
 
+        const currentSettings = getSettings();
         const saleRecord = {
           id: Date.now(),
           invoice_no: invoiceNo,
@@ -308,9 +342,9 @@ async function handleRequest(req, res) {
           discount: Number(saleData.discount) || 0,
           grand_total: Number(saleData.grand_total) || 0,
           created_at: new Date().toISOString(),
-          shop_name: 'श्री गणेश किराणा & जनरल स्टोअर',
-          shop_phone: '+91 98765 43210',
-          shop_address: 'मेन मार्केट रोड, दुकान नं. ४',
+          shop_name: currentSettings.shop_name || 'Lohar Kirana Store',
+          shop_phone: currentSettings.shop_phone || '+91 98765 43210',
+          shop_address: currentSettings.shop_address || 'मेन मार्केट रोड',
         };
 
         sales.unshift(saleRecord);
@@ -341,6 +375,40 @@ async function handleRequest(req, res) {
     const sales = getSales();
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(sales.slice(0, 50)));
+    return;
+  }
+
+  // 6. API: Shop Settings Management
+  if (pathname === '/api/settings' && req.method === 'GET') {
+    const settings = getSettings();
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify(settings));
+    return;
+  }
+
+  if (pathname === '/api/settings' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const incoming = JSON.parse(body);
+        const existing = getSettings();
+        const merged = { ...existing, ...incoming };
+        saveSettings(merged);
+        console.log(`[⚙️ Shop Settings Updated]: ${merged.shop_name}`);
+
+        broadcastMessage({
+          type: 'settings_updated',
+          settings: merged,
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ success: true, settings: merged }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
     return;
   }
 

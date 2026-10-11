@@ -467,6 +467,87 @@
       cursor: pointer;
     }
 
+    /* Baba's Mobile 1-Touch Quick Items */
+    .baba-mobile-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .baba-mobile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #f59e0b;
+    }
+
+    .baba-mobile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .baba-mobile-btn {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #ffffff;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: inherit;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+
+    .baba-mobile-btn:active {
+      background: #334155;
+      transform: scale(0.97);
+      border-color: #f59e0b;
+    }
+
+    .baba-mobile-num {
+      background: #f59e0b;
+      color: #000000;
+      font-weight: 900;
+      font-size: 14px;
+      border-radius: 6px;
+      min-width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .baba-mobile-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      overflow: hidden;
+    }
+
+    .baba-mobile-name {
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .baba-mobile-price {
+      font-size: 11px;
+      color: #10b981;
+      font-weight: 700;
+    }
+
     /* Feedback Flash & Toast */
     .scan-toast {
       position: fixed;
@@ -1020,12 +1101,23 @@
       </div>
     </div>
 
+    <!-- बाबांचा जलद नंबर (Baba's Quick 1-Touch Strip) -->
+    <div class="baba-mobile-card">
+      <div class="baba-mobile-header">
+        <span>👴 <strong>बाबांचा १-टच जलद कोड (Quick Items):</strong></span>
+        <span style="font-size: 11px; color: #94a3b8;">टॅप करा किंवा खाली नंबर टाका</span>
+      </div>
+      <div class="baba-mobile-grid" id="baba-mobile-grid">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+
     <!-- Manual Barcode Entry -->
     <div class="manual-card">
-      <div class="manual-title">⌨️ किंवा बारकोड नंबर टाईप करा:</div>
+      <div class="manual-title">⌨️ किंवा जलद कोड / बारकोड नंबर टाईप करा:</div>
       <div class="manual-input-row">
         <input type="text" id="manual-barcode-input" class="manual-input"
-          placeholder="उदा. 890103000001" inputmode="numeric" autocomplete="off">
+          placeholder="उदा. 1 (साखर), 2 (तेल) किंवा बारकोड..." inputmode="numeric" autocomplete="off">
         <button id="btn-send-manual" class="btn-manual-send">बिलात पाठवा 🚀</button>
       </div>
     </div>
@@ -1132,8 +1224,8 @@
 
       <!-- Printable Receipt View -->
       <div id="receipt-paper-box" class="receipt-paper">
-        <div style="text-align: center; font-weight: 800; font-size: 16px;">श्री गणेश किराणा & जनरल स्टोअर</div>
-        <div style="text-align: center; font-size: 11px; color: #4b5563;">मेन मार्केट रोड, दुकान नं. ४, फोन: ९८७६५४३२१०</div>
+        <div style="text-align: center; font-weight: 800; font-size: 16px;" id="receipt-shop-name">Lohar Kirana Store</div>
+        <div style="text-align: center; font-size: 11px; color: #4b5563;" id="receipt-shop-addr-phone">मेन मार्केट रोड | फोन: ९८७६५४३२१०</div>
         <div class="receipt-divider"></div>
         <div style="display: flex; justify-content: space-between; font-size: 11px;">
           <span>बिल क्र: <strong id="receipt-inv-no">#INV-2026-0001</strong></span>
@@ -1443,6 +1535,38 @@
     setInterval(checkConnection, 5000);
     checkConnection();
 
+    // बाबांचा १-टच जलद वस्तू कोड्स (बाबांसाठी साखर, तेल, आटा इ. जलद बटणे)
+    async function loadBabaMobileQuickBar() {
+      const container = document.getElementById('baba-mobile-grid');
+      if (!container) return;
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) return;
+        const prods = await res.json();
+        const quickProds = (prods || []).filter(p => p.quick_code && String(p.quick_code).trim().length > 0);
+        quickProds.sort((a, b) => (parseInt(a.quick_code, 10) || 999) - (parseInt(b.quick_code, 10) || 999));
+
+        if (quickProds.length === 0) {
+          container.innerHTML = '<span style="font-size: 11px; color: #64748b; grid-column: span 2; text-align: center; padding: 6px;">कॉम्प्युटरवर जाऊन उत्पादनांवर Quick Code टाका.</span>';
+          return;
+        }
+
+        container.innerHTML = quickProds.map(p => `
+          <button type="button" class="baba-mobile-btn" onclick="sendBarcodeToServer('${p.quick_code}')" title="${p.name} बिलात जोडा">
+            <span class="baba-mobile-num">${p.quick_code}</span>
+            <div class="baba-mobile-info">
+              <span class="baba-mobile-name">${p.name_mr || p.name}</span>
+              <span class="baba-mobile-price">₹${p.selling_price}</span>
+            </div>
+          </button>
+        `).join('');
+      } catch (e) {
+        console.warn('Error loading Baba mobile quick bar:', e);
+      }
+    }
+
+    loadBabaMobileQuickBar();
+
     // 2. Mobile Cart Management
     window.updateCartQty = function(barcode, change) {
       const item = cartItems.find(it => it.barcode === barcode);
@@ -1608,6 +1732,7 @@
         showToast('⚠️ कॉम्प्युटरशी संपर्क झाला नाही! Wi-Fi तपासा.', true);
       }
     }
+    window.sendBarcodeToServer = sendBarcodeToServer;
 
     // 4. Barcode Detected Callback (with debounce)
     function onBarcodeDetected(decodedText) {
@@ -1967,6 +2092,13 @@
       const d = new Date(sale.created_at);
       receiptDate.textContent = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
       receiptCustName.textContent = sale.customer_name + (sale.customer_phone ? ` (${sale.customer_phone})` : '');
+
+      const rName = document.getElementById('receipt-shop-name');
+      const rAddr = document.getElementById('receipt-shop-addr-phone');
+      if (rName && sale.shop_name) rName.textContent = sale.shop_name;
+      if (rAddr && (sale.shop_address || sale.shop_phone)) {
+        rAddr.textContent = `${sale.shop_address || ''} | फोन: ${sale.shop_phone || ''}`;
+      }
 
       receiptTableBody.innerHTML = '';
       sale.items.forEach(it => {

@@ -28,13 +28,14 @@ if (typeof window.api === 'undefined') {
   function initBrowserStorage() {
     if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
       const defaultProducts = [
-        { id: 1, name: 'Aashirvaad Shudh Chakki Atta 5kg', name_regional: 'आशीर्वाद आटा', barcode: '890103000001', sku: 'ATTA-5K', category_id: 1, category_name: 'Grains & Flours', unit_code: 'pkt', purchase_cost: 21000, selling_price: 24000, mrp: 25000, tax_rate: 0, current_stock: 45, min_stock_alert: 5, is_active: 1 },
-        { id: 2, name: 'Madhur Pure Sugar / Chini', name_regional: 'मधुर साखर', barcode: '890103000002', sku: 'SUGAR-1K', category_id: 5, category_name: 'Sugar & Salt', unit_code: 'kg', purchase_cost: 3800, selling_price: 4400, mrp: 4800, tax_rate: 0, current_stock: 120, min_stock_alert: 15, is_active: 1 },
-        { id: 3, name: 'Fortune Sunlite Sunflower Oil 1L', name_regional: 'फॉर्च्यून तेल', barcode: '890103000003', sku: 'OIL-1L', category_id: 3, category_name: 'Edible Oils', unit_code: 'pkt', purchase_cost: 11500, selling_price: 13500, mrp: 14500, tax_rate: 5, current_stock: 30, min_stock_alert: 8, is_active: 1 },
-        { id: 4, name: 'Tata Salt Vaccum Evaporated 1kg', name_regional: 'टाटा मीठ', barcode: '890103000004', sku: 'SALT-1K', category_id: 5, category_name: 'Sugar & Salt', unit_code: 'pkt', purchase_cost: 2200, selling_price: 2800, mrp: 3000, tax_rate: 0, current_stock: 60, min_stock_alert: 10, is_active: 1 },
-        { id: 5, name: 'Toor Dal Premium Desi 1kg', name_regional: 'तूर डाळ', barcode: '890103000005', sku: 'DAL-TOOR', category_id: 2, category_name: 'Pulses & Dals', unit_code: 'kg', purchase_cost: 13500, selling_price: 16000, mrp: 17500, tax_rate: 0, current_stock: 55, min_stock_alert: 10, is_active: 1 },
-        { id: 6, name: 'Amul Butter 100g', name_regional: 'अमूल बटर', barcode: '890103000006', sku: 'AMUL-100G', category_id: 8, category_name: 'Dairy', unit_code: 'pcs', purchase_cost: 5000, selling_price: 5800, mrp: 6000, tax_rate: 12, current_stock: 25, min_stock_alert: 5, is_active: 1 },
-        { id: 7, name: 'Parle-G Gold Biscuit 250g', name_regional: 'पारले जी बिस्किट', barcode: '890103000007', sku: 'PARLE-G', category_id: 6, category_name: 'Snacks & Biscuits', unit_code: 'pkt', purchase_cost: 2500, selling_price: 3000, mrp: 3000, tax_rate: 18, current_stock: 80, min_stock_alert: 15, is_active: 1 },
+        { id: 1, quick_code: '1', name: 'Madhur Pure Sugar / Chini', name_regional: 'मधुर साखर', barcode: '890103000002', sku: 'SUGAR-1K', category_id: 5, category_name: 'Sugar & Salt', unit_code: 'kg', purchase_cost: 3800, selling_price: 4400, mrp: 4800, tax_rate: 0, current_stock: 120, min_stock_alert: 15, is_active: 1 },
+        { id: 2, quick_code: '2', name: 'Fortune Sunlite Sunflower Oil 1L', name_regional: 'फॉर्च्यून तेल', barcode: '890103000003', sku: 'OIL-1L', category_id: 3, category_name: 'Edible Oils', unit_code: 'pkt', purchase_cost: 11500, selling_price: 13500, mrp: 14500, tax_rate: 5, current_stock: 30, min_stock_alert: 8, is_active: 1 },
+        { id: 3, quick_code: '3', name: 'Aashirvaad Shudh Chakki Atta 5kg', name_regional: 'आशीर्वाद आटा', barcode: '890103000001', sku: 'ATTA-5K', category_id: 1, category_name: 'Grains & Flours', unit_code: 'pkt', purchase_cost: 21000, selling_price: 24000, mrp: 25000, tax_rate: 0, current_stock: 45, min_stock_alert: 5, is_active: 1 },
+        { id: 4, quick_code: '4', name: 'Tata Salt Vaccum Evaporated 1kg', name_regional: 'टाटा मीठ', barcode: '890103000004', sku: 'SALT-1K', category_id: 5, category_name: 'Sugar & Salt', unit_code: 'pkt', purchase_cost: 2200, selling_price: 2800, mrp: 3000, tax_rate: 0, current_stock: 60, min_stock_alert: 10, is_active: 1 },
+        { id: 5, quick_code: '5', name: 'Toor Dal Premium Desi 1kg', name_regional: 'तूर डाळ', barcode: '890103000005', sku: 'DAL-TOOR', category_id: 2, category_name: 'Pulses & Dals', unit_code: 'kg', purchase_cost: 13500, selling_price: 16000, mrp: 17500, tax_rate: 0, current_stock: 55, min_stock_alert: 10, is_active: 1 },
+        { id: 6, quick_code: '6', name: 'Tata Tea Gold 250g', name_regional: 'टाटा चहा', barcode: '8901030012345', sku: 'TEA-GOLD', category_id: 7, category_name: 'Beverages & Tea', unit_code: 'pkt', purchase_cost: 11000, selling_price: 13000, mrp: 14000, tax_rate: 5, current_stock: 35, min_stock_alert: 8, is_active: 1 },
+        { id: 7, quick_code: '7', name: 'Parle-G Gold Biscuit 250g', name_regional: 'पारले जी बिस्किट', barcode: '890103000007', sku: 'PARLE-G', category_id: 6, category_name: 'Snacks & Biscuits', unit_code: 'pkt', purchase_cost: 2500, selling_price: 3000, mrp: 3000, tax_rate: 18, current_stock: 80, min_stock_alert: 15, is_active: 1 },
+        { id: 8, quick_code: '8', name: 'Amul Butter 100g', name_regional: 'अमूल बटर', barcode: '890103000006', sku: 'AMUL-100G', category_id: 8, category_name: 'Dairy', unit_code: 'pcs', purchase_cost: 5000, selling_price: 5800, mrp: 6000, tax_rate: 12, current_stock: 25, min_stock_alert: 5, is_active: 1 },
       ];
       setStored(STORAGE_KEYS.PRODUCTS, defaultProducts);
     }
@@ -178,8 +179,9 @@ if (typeof window.api === 'undefined') {
       ],
       searchProducts: async (q) => {
         const all = getStored(STORAGE_KEYS.PRODUCTS);
-        const term = q.toLowerCase();
+        const term = q.trim().toLowerCase();
         return all.filter(p =>
+          (p.quick_code && String(p.quick_code).trim().toLowerCase() === term) ||
           p.name.toLowerCase().includes(term) ||
           (p.name_regional && p.name_regional.toLowerCase().includes(term)) ||
           (p.barcode && p.barcode.includes(term)) ||
@@ -189,8 +191,12 @@ if (typeof window.api === 'undefined') {
       getProducts: async ({ query = '', category_id = null } = {}) => {
         let prods = getStored(STORAGE_KEYS.PRODUCTS);
         if (query) {
-          const t = query.toLowerCase();
-          prods = prods.filter(p => p.name.toLowerCase().includes(t) || (p.barcode && p.barcode.includes(t)));
+          const t = query.trim().toLowerCase();
+          prods = prods.filter(p => 
+            (p.quick_code && String(p.quick_code).trim().toLowerCase() === t) ||
+            p.name.toLowerCase().includes(t) || 
+            (p.barcode && p.barcode.includes(t))
+          );
         }
         if (category_id) {
           prods = prods.filter(p => p.category_id === category_id);
@@ -203,7 +209,12 @@ if (typeof window.api === 'undefined') {
       },
       getProductByBarcode: async (barcode) => {
         const prods = getStored(STORAGE_KEYS.PRODUCTS);
-        return prods.find(p => p.barcode === barcode || p.sku === barcode) || null;
+        const b = String(barcode).trim().toLowerCase();
+        return prods.find(p => 
+          (p.quick_code && String(p.quick_code).trim().toLowerCase() === b) ||
+          p.barcode === barcode || 
+          p.sku === barcode
+        ) || null;
       },
       saveProduct: async (p) => {
         const prods = getStored(STORAGE_KEYS.PRODUCTS);
@@ -655,10 +666,35 @@ if (typeof window.api === 'undefined') {
 
     // ==================== SETTINGS ====================
     settings: {
-      getSettings: async () => JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}'),
+      getSettings: async () => {
+        try {
+          const res = await fetch('/api/settings');
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.shop_name) {
+              localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(data));
+              return data;
+            }
+          }
+        } catch (e) {
+          // Offline / network fallback
+        }
+        return JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+      },
       saveSettings: async (map) => {
-        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(map));
-        return { success: true };
+        const existing = JSON.parse(localStorage.getItem(STORAGE_KEYS.SETTINGS) || '{}');
+        const merged = { ...existing, ...map };
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(merged));
+        try {
+          await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(merged),
+          });
+        } catch (e) {
+          // Offline / network fallback
+        }
+        return { success: true, settings: merged };
       },
       getAuditLogs: async () => [],
     },

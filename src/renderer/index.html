@@ -131,6 +131,16 @@
               </button>
             </div>
 
+            <!-- Baba's Quick Number Strip (१-टच जलद वस्तू कोड्स) -->
+            <div class="baba-quick-bar" id="baba-quick-bar">
+              <div class="baba-quick-label" title="बाबांसाठी १, २, ३ नंबर दाबून किंवा टच करून लगेच वस्तू ऍड करा!">
+                👴 <span><strong>बाबांचा जलद कोड:</strong></span>
+              </div>
+              <div class="baba-quick-items" id="baba-quick-items">
+                <!-- Dynamically loaded from products with quick_code -->
+              </div>
+            </div>
+
             <!-- Cart Table -->
             <div class="cart-table-wrap">
               <table class="cart-table">
@@ -369,6 +379,7 @@
             <select id="prod-cat-filter" class="select-input" style="width: 160px;">
               <option value="">All Categories</option>
             </select>
+            <button id="prod-btn-barcode-stickers" class="btn btn-secondary" title="सुट्टा मालासाठी बारकोड स्टिकर प्रिंट करा">🏷️ बारकोड स्टिकर प्रिंटर</button>
             <button id="prod-btn-add" class="btn btn-primary">+ Add New Product</button>
           </div>
         </div>
@@ -377,6 +388,7 @@
           <table class="data-table">
             <thead>
               <tr>
+                <th style="width: 90px;">बाबांचा कोड</th>
                 <th>Barcode / SKU</th>
                 <th>Item Name</th>
                 <th>Category</th>
@@ -640,6 +652,11 @@
                 <input type="text" id="set-receipt-footer" class="text-input">
               </div>
             </div>
+            <div style="margin-top: 16px; display: flex; justify-content: flex-end;">
+              <button id="set-btn-save-shop" class="btn btn-primary" style="font-weight: 700; padding: 10px 20px;">
+                💾 दुकानाचे नाव व पत्ता सेव्ह करा (Save Shop Details)
+              </button>
+            </div>
           </div>
 
           <!-- Printer Hardware -->
@@ -811,6 +828,10 @@
           <div class="form-group">
             <label>SKU (Stock Keeping Unit)</label>
             <input type="text" id="prod-form-sku" class="text-input" placeholder="e.g. OIL-001">
+          </div>
+          <div class="form-group">
+            <label>👴 बाबांचा जलद नंबर (Quick Code)</label>
+            <input type="text" id="prod-form-quick-code" class="text-input" placeholder="उदा. 1, 2, 3...">
           </div>
         </div>
         <div class="form-row">
@@ -1251,6 +1272,72 @@
     </div>
   </div>
 
+  <!-- 12. BARCODE STICKER GENERATOR MODAL (सुट्टा किराणा बारकोड स्टिकर प्रिंटर) -->
+  <div id="modal-barcode-sticker" class="modal-overlay">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">🏷️ सुट्टा किराणा बारकोड स्टिकर प्रिंटर (Barcode Sticker Generator)</div>
+        <button class="win-btn modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>वस्तू निवडा (Select Product) *</label>
+          <select id="sticker-product-select" class="select-input"></select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>शीट लेआउट (Label Sheet Layout)</label>
+            <select id="sticker-layout-select" class="select-input">
+              <option value="a4_24">A4 शीट (२४ स्टिकर्स - ३x८ ग्रिड) - सामान्य A4 स्टिकर पेपर</option>
+              <option value="a4_40">A4 शीट (४० स्टिकर्स - ४x१० ग्रिड) - लहान स्टिकर्स</option>
+              <option value="thermal_single">थर्मल लेबल रोल (५०mm x २५mm - सिंगल स्टिकर)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>स्टिकर्स संख्या (Number of Labels)</label>
+            <input type="number" id="sticker-quantity-input" class="text-input" value="24" min="1" max="120" step="1">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>दुकानाचे नाव दाखवा (Show Shop Name)</label>
+            <select id="sticker-show-shop" class="select-input">
+              <option value="yes">होय (Yes)</option>
+              <option value="no">नाही (No)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>बाबांचा जलद कोड दाखवा (Show Baba Code)</label>
+            <select id="sticker-show-code" class="select-input">
+              <option value="yes">होय (उदा. #1)</option>
+              <option value="no">नाही</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Live Sticker Preview Card -->
+        <div style="margin-top: 14px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block;">
+            स्टिकर कसा दिसेल (Live Label Preview):
+          </label>
+          <div class="sticker-preview-wrapper">
+            <div id="single-sticker-preview" class="single-sticker-preview">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between;">
+        <button class="btn btn-secondary modal-close">रद्द करा (Cancel)</button>
+        <button id="btn-print-barcode-stickers" class="btn btn-primary" style="font-weight: 700;">
+          🖨️ स्टिकर्स प्रिंट करा (Print Stickers)
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Mobile Bottom Navigation Bar (App-like quick access on smartphones) -->
   <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
     <button class="bottom-nav-item active" data-page="pos" title="बिलिंग (POS)">
@@ -1278,12 +1365,16 @@
   <!-- Hidden Printable Thermal Receipt Container -->
   <div id="receipt-print-container"></div>
 
+  <!-- Dedicated Barcode Sticker Print Container (hidden on screen, visible during print) -->
+  <div id="barcode-stickers-print-container"></div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- Load Renderer Scripts -->
   <script src="js/i18n.js"></script>
   <script src="js/web-fallback.js"></script>
+  <script src="js/JsBarcode.all.min.js"></script>
   <script src="js/receipt.js"></script>
   <script src="js/pos.js"></script>
   <script src="js/app.js"></script>

@@ -29,11 +29,24 @@
     visibility: hidden;
   }
 
-  #receipt-print-container, #receipt-print-container * {
+  #receipt-print-container, #receipt-print-container *,
+  #barcode-stickers-print-container, #barcode-stickers-print-container * {
     visibility: visible;
   }
 
   #receipt-print-container {
+    display: block !important;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  #barcode-stickers-print-container {
     display: block !important;
     position: absolute;
     left: 0;
@@ -67,6 +80,143 @@
   .thermal-receipt-print.width-80mm {
     width: 80mm;
     font-size: 13px;
+  }
+
+  /* Barcode Sticker Sheet Print Styles */
+  .sticker-grid {
+    box-sizing: border-box;
+    background: #ffffff;
+    color: #000000;
+  }
+
+  /* A4 Sheet (24 labels: 3 columns x 8 rows) */
+  .sticker-grid-a4_24 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3.5mm;
+    padding: 6mm 4mm;
+    width: 210mm;
+    min-height: 297mm;
+  }
+
+  .sticker-item-a4_24 {
+    border: 1px dashed #cbd5e1;
+    border-radius: 4px;
+    padding: 2.5mm;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 33.5mm;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    page-break-inside: avoid;
+  }
+
+  /* A4 Sheet (40 labels: 4 columns x 10 rows) */
+  .sticker-grid-a4_40 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2mm;
+    padding: 4mm;
+    width: 210mm;
+    min-height: 297mm;
+  }
+
+  .sticker-item-a4_40 {
+    border: 1px dashed #cbd5e1;
+    border-radius: 3px;
+    padding: 1.5mm;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 26mm;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    page-break-inside: avoid;
+  }
+
+  /* Thermal Single Label (50mm x 25mm continuous roll) */
+  .sticker-grid-thermal_single {
+    display: flex;
+    flex-direction: column;
+    width: 50mm;
+    margin: 0 auto;
+  }
+
+  .sticker-item-thermal_single {
+    width: 50mm;
+    height: 25mm;
+    padding: 1.5mm;
+    text-align: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    page-break-after: always;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  .stk-shop-print {
+    font-size: 7.5pt;
+    font-weight: 800;
+    text-transform: uppercase;
+    line-height: 1.1;
+    margin-bottom: 1px;
+    color: #000;
+  }
+
+  .stk-name-print {
+    font-size: 8.5pt;
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 1px;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 95%;
+  }
+
+  .stk-code-tag-print {
+    border: 1px solid #000;
+    padding: 0 2px;
+    font-size: 7.5pt;
+    font-weight: 900;
+    border-radius: 2px;
+    margin-right: 2px;
+  }
+
+  .stk-prices-print {
+    font-size: 8pt;
+    font-weight: 800;
+    margin-bottom: 1px;
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    align-items: baseline;
+  }
+
+  .stk-mrp-print {
+    font-size: 7pt;
+    color: #555;
+    text-decoration: line-through;
+  }
+
+  .stk-sell-print {
+    font-size: 8.5pt;
+    font-weight: 900;
+    color: #000;
+  }
+
+  .stk-barcode-svg-print {
+    max-width: 95%;
+    display: block;
+    margin: 0 auto;
   }
 }
 

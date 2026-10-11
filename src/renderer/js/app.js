@@ -42,6 +42,7 @@ class AppController {
     this.modalPurchase = document.getElementById('modal-purchase');
     this.modalSuppPayment = document.getElementById('modal-supp-payment');
     this.modalCustStatement = document.getElementById('modal-customer-statement');
+    this.modalBarcodeSticker = document.getElementById('modal-barcode-sticker');
 
     this.toastContainer = document.getElementById('toast-container');
   }
@@ -149,6 +150,21 @@ class AppController {
     document.getElementById('prod-search-input').addEventListener('input', (e) => this.loadProductsList(e.target.value));
     document.getElementById('prod-cat-filter').addEventListener('change', () => this.loadProductsList());
 
+    // Barcode Sticker Printing for Loose Kirana Goods
+    const btnStickers = document.getElementById('prod-btn-barcode-stickers');
+    if (btnStickers) btnStickers.addEventListener('click', () => this.openBarcodeStickerModal());
+
+    const stickerProdSel = document.getElementById('sticker-product-select');
+    if (stickerProdSel) stickerProdSel.addEventListener('change', () => this.updateStickerPreview());
+    const stickerLayoutSel = document.getElementById('sticker-layout-select');
+    if (stickerLayoutSel) stickerLayoutSel.addEventListener('change', () => this.updateStickerPreview());
+    const stickerShowShop = document.getElementById('sticker-show-shop');
+    if (stickerShowShop) stickerShowShop.addEventListener('change', () => this.updateStickerPreview());
+    const stickerShowCode = document.getElementById('sticker-show-code');
+    if (stickerShowCode) stickerShowCode.addEventListener('change', () => this.updateStickerPreview());
+    const stickerBtnPrint = document.getElementById('btn-print-barcode-stickers');
+    if (stickerBtnPrint) stickerBtnPrint.addEventListener('click', () => this.printBarcodeStickers());
+
     // Stock Adjustments
     document.getElementById('stock-btn-adjust').addEventListener('click', () => this.openStockAdjustModal());
     document.getElementById('stock-adj-btn-submit').addEventListener('click', () => this.handleSaveStockAdjust());
@@ -179,7 +195,10 @@ class AppController {
     document.getElementById('exp-form-btn-submit').addEventListener('click', () => this.handleSaveExpense());
 
     // Settings
-    document.getElementById('settings-btn-save').addEventListener('click', () => this.handleSaveSettings());
+    const btnSaveShop = document.getElementById('set-btn-save-shop');
+    if (btnSaveShop) btnSaveShop.addEventListener('click', () => this.handleSaveSettings());
+    const btnSaveSettings = document.getElementById('settings-btn-save');
+    if (btnSaveSettings) btnSaveSettings.addEventListener('click', () => this.handleSaveSettings());
     document.getElementById('set-btn-manual-backup').addEventListener('click', () => this.handleCreateBackup());
     document.getElementById('set-btn-test-print').addEventListener('click', () => this.handleTestPrint());
 
@@ -526,6 +545,7 @@ class AppController {
 
       tbody.innerHTML = prods.map(p => `
         <tr>
+          <td>${p.quick_code ? `<span class="badge-quick-code">#${p.quick_code}</span>` : '<span style="color:var(--text-dim); font-size:12px;">-</span>'}</td>
           <td><strong>${p.barcode || p.sku || '-'}</strong></td>
           <td>
             <div style="font-weight: 600;">${p.name}</div>
@@ -542,7 +562,8 @@ class AppController {
           <td>
             <span class="user-badge" style="background: ${p.is_active ? '#059669' : '#64748b'};">${p.is_active ? 'Active' : 'Disabled'}</span>
           </td>
-          <td style="text-align: right;">
+          <td style="text-align: right; white-space: nowrap;">
+            <button class="btn btn-secondary btn-sm" onclick="window.app.openBarcodeStickerModal(${p.id})" title="सुट्टा मालासाठी बारकोड स्टिकर प्रिंट करा">🏷️ स्टिकर</button>
             ${this.currentUser.role === 'owner' ? `
               <button class="btn btn-secondary btn-sm" onclick="window.app.editProduct(${p.id})">Edit</button>
             ` : ''}
@@ -578,6 +599,8 @@ class AppController {
     document.getElementById('prod-form-name-regional').value = '';
     document.getElementById('prod-form-barcode').value = '';
     document.getElementById('prod-form-sku').value = '';
+    const quickCodeEl = document.getElementById('prod-form-quick-code');
+    if (quickCodeEl) quickCodeEl.value = '';
     document.getElementById('prod-form-cost').value = 0;
     document.getElementById('prod-form-price').value = 0;
     document.getElementById('prod-form-mrp').value = 0;
@@ -597,6 +620,8 @@ class AppController {
       document.getElementById('prod-form-name-regional').value = p.name_regional || '';
       document.getElementById('prod-form-barcode').value = p.barcode || '';
       document.getElementById('prod-form-sku').value = p.sku || '';
+      const quickCodeEl = document.getElementById('prod-form-quick-code');
+      if (quickCodeEl) quickCodeEl.value = p.quick_code || '';
       document.getElementById('prod-form-category').value = p.category_id || '';
       document.getElementById('prod-form-unit').value = p.unit_code || 'pcs';
       document.getElementById('prod-form-cost').value = (p.purchase_cost / 100).toFixed(2);
@@ -619,6 +644,7 @@ class AppController {
     const nameRegional = document.getElementById('prod-form-name-regional').value.trim();
     const barcode = document.getElementById('prod-form-barcode').value.trim();
     const sku = document.getElementById('prod-form-sku').value.trim();
+    const quickCode = (document.getElementById('prod-form-quick-code')?.value || '').trim();
     const catId = document.getElementById('prod-form-category').value;
     const unitCode = document.getElementById('prod-form-unit').value;
     const costRupees = parseFloat(document.getElementById('prod-form-cost').value) || 0;
@@ -638,6 +664,7 @@ class AppController {
       name_regional: nameRegional,
       barcode: barcode || null,
       sku: sku || null,
+      quick_code: quickCode || null,
       category_id: catId ? Number(catId) : null,
       unit_code: unitCode,
       purchase_cost: Math.round(costRupees * 100),
@@ -657,10 +684,172 @@ class AppController {
       await window.api.master.saveProduct(payload);
       this.closeModal(this.modalProduct);
       this.loadProductsList();
+      if (window.posEngine) {
+        window.posEngine.renderBabaQuickBar();
+      }
       this.showToast('Product saved successfully!', 'success');
     } catch (e) {
       this.showToast(e.message || 'Error saving product', 'error');
     }
+  }
+
+  // ==================== BARCODE STICKER GENERATOR (सुट्टा किराणा स्टिकर प्रिंटर) ====================
+  async openBarcodeStickerModal(selectedProductId = null) {
+    try {
+      const prods = await window.api.master.getProducts();
+      const sel = document.getElementById('sticker-product-select');
+      if (!sel) return;
+
+      sel.innerHTML = (prods || []).map(p => `
+        <option value="${p.id}" ${selectedProductId && p.id === Number(selectedProductId) ? 'selected' : ''}>
+          ${p.quick_code ? `[#${p.quick_code}] ` : ''}${p.name} ${p.name_regional ? `(${p.name_regional})` : ''} - ₹${(p.selling_price / 100).toFixed(2)}
+        </option>
+      `).join('');
+
+      this.currentStickerProducts = prods;
+      this.updateStickerPreview();
+      this.openModal(this.modalBarcodeSticker);
+    } catch (err) {
+      console.error('Error opening sticker modal:', err);
+      this.showToast('स्टिकर प्रिंटर उघडताना एरर आला', 'error');
+    }
+  }
+
+  updateStickerPreview() {
+    const sel = document.getElementById('sticker-product-select');
+    const previewContainer = document.getElementById('single-sticker-preview');
+    if (!sel || !previewContainer) return;
+
+    const prodId = Number(sel.value);
+    const prod = (this.currentStickerProducts || []).find(p => p.id === prodId);
+    if (!prod) {
+      previewContainer.innerHTML = '<span style="color: #64748b;">कोणतीही वस्तू निवडली नाही</span>';
+      return;
+    }
+
+    const showShop = document.getElementById('sticker-show-shop')?.value !== 'no';
+    const showCode = document.getElementById('sticker-show-code')?.value !== 'no';
+    const shopName = this.settings?.shop_name || 'किराणा स्टोअर';
+
+    // Ensure barcode exists (generate synthetic EAN/Code128 if missing)
+    const barcode = prod.barcode || prod.sku || ('8901' + String(prod.id).padStart(8, '0'));
+    const displayName = prod.name_regional || prod.name;
+    const mrpVal = prod.mrp ? Math.round(prod.mrp / 100) : 0;
+    const sellVal = Math.round(prod.selling_price / 100);
+    const mrpStr = mrpVal > sellVal ? `MRP: ₹${mrpVal}` : '';
+    const sellStr = `₹${sellVal}`;
+    const unitStr = prod.unit_code ? `/${prod.unit_code}` : '';
+
+    previewContainer.innerHTML = `
+      ${showShop ? `<div class="stk-shop">${shopName}</div>` : ''}
+      <div class="stk-name">
+        ${showCode && prod.quick_code ? `<span class="stk-quick-tag">#${prod.quick_code}</span> ` : ''}
+        ${displayName}
+      </div>
+      <div class="stk-prices">
+        ${mrpStr ? `<span class="stk-mrp">${mrpStr}</span>` : ''}
+        <span class="stk-sell">दर: ${sellStr} ${unitStr}</span>
+      </div>
+      <svg id="sticker-preview-svg"></svg>
+    `;
+
+    // Render Barcode via JsBarcode
+    try {
+      if (typeof JsBarcode !== 'undefined') {
+        JsBarcode('#sticker-preview-svg', barcode, {
+          format: 'CODE128',
+          width: 1.4,
+          height: 36,
+          displayValue: true,
+          fontSize: 11,
+          font: 'monospace',
+          textMargin: 2,
+          margin: 2
+        });
+      }
+    } catch (e) {
+      console.warn('JsBarcode render error in preview:', e);
+    }
+  }
+
+  printBarcodeStickers() {
+    const sel = document.getElementById('sticker-product-select');
+    const layout = document.getElementById('sticker-layout-select')?.value || 'a4_24';
+    const qtyInput = document.getElementById('sticker-quantity-input');
+    const count = Math.max(1, Math.min(200, parseInt(qtyInput?.value, 10) || 24));
+    const showShop = document.getElementById('sticker-show-shop')?.value !== 'no';
+    const showCode = document.getElementById('sticker-show-code')?.value !== 'no';
+    const printContainer = document.getElementById('barcode-stickers-print-container');
+
+    if (!sel || !printContainer) return;
+
+    const prodId = Number(sel.value);
+    const prod = (this.currentStickerProducts || []).find(p => p.id === prodId);
+    if (!prod) {
+      this.showToast('कृपया वस्तू निवडा!', 'error');
+      return;
+    }
+
+    const shopName = this.settings?.shop_name || 'किराणा स्टोअर';
+    const barcode = prod.barcode || prod.sku || ('8901' + String(prod.id).padStart(8, '0'));
+    const displayName = prod.name_regional || prod.name;
+    const mrpVal = prod.mrp ? Math.round(prod.mrp / 100) : 0;
+    const sellVal = Math.round(prod.selling_price / 100);
+    const mrpStr = mrpVal > sellVal ? `MRP: ₹${mrpVal}` : '';
+    const sellStr = `₹${sellVal}`;
+    const unitStr = prod.unit_code ? `/${prod.unit_code}` : '';
+
+    printContainer.className = `barcode-print-${layout}`;
+    printContainer.innerHTML = '';
+
+    const grid = document.createElement('div');
+    grid.className = `sticker-grid sticker-grid-${layout}`;
+
+    for (let i = 0; i < count; i++) {
+      const item = document.createElement('div');
+      item.className = `sticker-label-item sticker-item-${layout}`;
+      item.innerHTML = `
+        ${showShop ? `<div class="stk-shop-print">${shopName}</div>` : ''}
+        <div class="stk-name-print">
+          ${showCode && prod.quick_code ? `<span class="stk-code-tag-print">#${prod.quick_code}</span> ` : ''}
+          ${displayName}
+        </div>
+        <div class="stk-prices-print">
+          ${mrpStr ? `<span class="stk-mrp-print">${mrpStr}</span>` : ''}
+          <span class="stk-sell-print">दर: ${sellStr} ${unitStr}</span>
+        </div>
+        <svg class="stk-barcode-svg-print" id="stk-svg-${i}"></svg>
+      `;
+      grid.appendChild(item);
+    }
+
+    printContainer.appendChild(grid);
+
+    // Render barcodes on each sticker SVG
+    if (typeof JsBarcode !== 'undefined') {
+      for (let i = 0; i < count; i++) {
+        try {
+          const barcodeHeight = layout === 'a4_40' ? 22 : (layout === 'thermal_single' ? 32 : 28);
+          JsBarcode(`#stk-svg-${i}`, barcode, {
+            format: 'CODE128',
+            width: layout === 'a4_40' ? 1.05 : 1.25,
+            height: barcodeHeight,
+            displayValue: true,
+            fontSize: 9.5,
+            font: 'monospace',
+            textMargin: 1,
+            margin: 1
+          });
+        } catch (err) {
+          console.warn('JsBarcode print item error:', err);
+        }
+      }
+    }
+
+    // Trigger Print
+    setTimeout(() => {
+      window.print();
+    }, 150);
   }
 
   // ==================== STOCK ADJUSTMENTS ====================

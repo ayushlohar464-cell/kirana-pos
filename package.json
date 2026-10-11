@@ -25,6 +25,7 @@
     "electron": "^44.7.0",
     "electron-builder": "^26.15.3",
     "html5-qrcode": "^2.3.8",
+    "jsbarcode": "^3.12.3",
     "qrcode": "^1.5.4",
     "selfsigned": "^5.5.0",
     "zod": "^4.6.5"

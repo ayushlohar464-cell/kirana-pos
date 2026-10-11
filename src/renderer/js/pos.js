@@ -41,12 +41,18 @@ class PosEngine {
     this.btnNewBill = document.getElementById('pos-btn-new-bill');
     this.payModeButtons = document.querySelectorAll('.pay-mode-btn');
 
+    this.babaQuickBar = document.getElementById('baba-quick-bar');
+    this.babaQuickItems = document.getElementById('baba-quick-items');
+
     this.btnMobileScanner = document.getElementById('pos-btn-mobile-scanner');
     this.modalMobileScanner = document.getElementById('modal-mobile-scanner');
     this.scannerAudioCtx = null;
   }
 
   bindEvents() {
+    // Render Baba's 1-Touch Quick Bar (१-टच जलद वस्तू कोड्स)
+    this.renderBabaQuickBar();
+
     // Search input typing & debounce
     let searchDebounce = null;
     this.searchInput.addEventListener('input', (e) => {
@@ -72,7 +78,7 @@ class PosEngine {
         const val = this.searchInput.value.trim();
         if (!val) return;
 
-        // Try exact barcode/SKU lookup first (instant scanner entry)
+        // 1. Try exact barcode/SKU/quick_code lookup first (instant scanner or Baba quick number entry)
         try {
           const directProd = await window.api.master.getProductByBarcode(val);
           if (directProd) {
@@ -85,7 +91,18 @@ class PosEngine {
           console.warn('Barcode lookup error:', err);
         }
 
-        // If dropdown is open and an item is highlighted
+        // 2. Also check if typed val matches any quick_code in searchResults
+        if (this.searchResults && this.searchResults.length > 0) {
+          const quickMatch = this.searchResults.find(p => p.quick_code && String(p.quick_code).trim().toLowerCase() === val.toLowerCase());
+          if (quickMatch) {
+            this.addToCart(quickMatch);
+            this.searchInput.value = '';
+            this.hideSearchResults();
+            return;
+          }
+        }
+
+        // 3. If dropdown is open and an item is highlighted
         if (this.selectedSearchIndex >= 0 && this.searchResults[this.selectedSearchIndex]) {
           this.addToCart(this.searchResults[this.selectedSearchIndex]);
           this.searchInput.value = '';
@@ -180,6 +197,51 @@ class PosEngine {
     this.initMobileScannerStream();
   }
 
+  async renderBabaQuickBar() {
+    if (!this.babaQuickItems) return;
+    try {
+      const prods = await window.api.master.getProducts();
+      // Filter products that have quick_code assigned
+      const quickProds = (prods || []).filter(p => p.quick_code && String(p.quick_code).trim().length > 0);
+
+      // Sort numerically by quick code (1, 2, 3, ...)
+      quickProds.sort((a, b) => {
+        const numA = parseInt(a.quick_code, 10) || 999;
+        const numB = parseInt(b.quick_code, 10) || 999;
+        return numA - numB;
+      });
+
+      if (quickProds.length === 0) {
+        this.babaQuickItems.innerHTML = '<span style="font-size: 11px; color: var(--text-dim); padding: 4px;">उत्पादने मेनूमध्ये जाऊन महत्त्वाच्या किराणा मालावर क्विक नंबर (#१, #२) टाका.</span>';
+        return;
+      }
+
+      this.babaQuickItems.innerHTML = quickProds.map(p => `
+        <button type="button" class="baba-code-btn" data-id="${p.id}" data-code="${p.quick_code}" title="${p.name} बिलामध्ये जोडा">
+          <span class="baba-code-num">${p.quick_code}</span>
+          <span class="baba-code-name">${p.name_regional || p.name}</span>
+          <span class="baba-code-price">₹${(p.selling_price / 100).toFixed(0)}</span>
+        </button>
+      `).join('');
+
+      // Click listener for quick buttons
+      this.babaQuickItems.querySelectorAll('.baba-code-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const id = Number(btn.dataset.id);
+          const found = quickProds.find(p => p.id === id);
+          if (found) {
+            this.addToCart(found);
+            if (this.searchInput) this.searchInput.focus();
+            window.app.showToast(`✅ ${found.name_regional || found.name} बिलात जोडले!`, 'success');
+          }
+        });
+      });
+    } catch (err) {
+      console.warn('Error rendering Baba Quick Bar:', err);
+    }
+  }
+
   async searchProducts(query) {
     try {
       const results = await window.api.master.searchProducts(query);
@@ -197,7 +259,10 @@ class PosEngine {
         html += `
           <div class="search-item-row" data-index="${idx}">
             <div>
-              <div class="search-item-name">${p.name} ${p.name_regional ? `<span style="color: var(--text-muted);">(${p.name_regional})</span>` : ''}</div>
+              <div class="search-item-name">
+                ${p.quick_code ? `<span class="baba-badge-sm">#${p.quick_code}</span>` : ''}
+                ${p.name} ${p.name_regional ? `<span style="color: var(--text-muted);">(${p.name_regional})</span>` : ''}
+              </div>
               <div class="search-item-sub">Barcode: ${p.barcode || 'N/A'} | Unit: ${p.unit_code} | Stock: ${p.current_stock}</div>
             </div>
             <div class="search-item-price">₹${(p.selling_price / 100).toFixed(2)}</div>
