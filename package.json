@@ -1,0 +1,32 @@
+{
+  "name": "kirana-pos",
+  "version": "1.0.0",
+  "description": "Kirana Store Management & POS Desktop Application",
+  "main": "src/main/main.js",
+  "scripts": {
+    "start": "node serve.js",
+    "desktop": "electron .",
+    "test": "node tests/run-test.js",
+    "dist": "electron-builder --win"
+  },
+  "keywords": [
+    "pos",
+    "kirana",
+    "retail",
+    "inventory",
+    "offline-first",
+    "electron"
+  ],
+  "author": "KiranaPOS Team",
+  "license": "ISC",
+  "dependencies": {
+    "@node-rs/argon2": "^2.2.2",
+    "better-sqlite3": "^13.0.3",
+    "electron": "^44.7.0",
+    "electron-builder": "^26.15.3",
+    "html5-qrcode": "^2.3.8",
+    "qrcode": "^1.5.4",
+    "selfsigned": "^5.5.0",
+    "zod": "^4.6.5"
+  }
+}

@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "barcode": "890103000001",
+    "name": "Aashirvaad Shudh Chakki Atta 5kg",
+    "name_mr": "आशीर्वाद आटा ५ किलो",
+    "selling_price": 240,
+    "mrp": 250,
+    "unit": "pkt"
+  },
+  {
+    "id": 2,
+    "barcode": "890103000002",
+    "name": "Madhur Pure Sugar 1kg",
+    "name_mr": "मधुर साखर १ किलो",
+    "selling_price": 44,
+    "mrp": 48,
+    "unit": "kg"
+  },
+  {
+    "id": 3,
+    "barcode": "890103000003",
+    "name": "Fortune Sunlite Sunflower Oil 1L",
+    "name_mr": "फॉर्च्यून सूर्यफूल तेल १ लिटर",
+    "selling_price": 135,
+    "mrp": 145,
+    "unit": "pkt"
+  },
+  {
+    "id": 4,
+    "barcode": "890103000004",
+    "name": "Tata Salt 1kg",
+    "name_mr": "टाटा मीठ १ किलो",
+    "selling_price": 28,
+    "mrp": 30,
+    "unit": "pkt"
+  },
+  {
+    "id": 5,
+    "barcode": "890103000005",
+    "name": "Toor Dal Premium Desi 1kg",
+    "name_mr": "तूर डाळ १ किलो",
+    "selling_price": 160,
+    "mrp": 175,
+    "unit": "kg"
+  },
+  {
+    "id": 6,
+    "barcode": "890103000006",
+    "name": "Amul Butter 100g",
+    "name_mr": "अमूल बटर १०० ग्रॅम",
+    "selling_price": 58,
+    "mrp": 60,
+    "unit": "pcs"
+  },
+  {
+    "id": 7,
+    "barcode": "890103000007",
+    "name": "Parle-G Gold Biscuit",
+    "name_mr": "पारले-जी बिस्किट",
+    "selling_price": 30,
+    "mrp": 30,
+    "unit": "pkt"
+  },
+  {
+    "id": 8,
+    "barcode": "8901719134845",
+    "name": "Maggi 2-Minute Noodles 70g",
+    "name_mr": "मॅगी नूडल्स ७० ग्रॅम",
+    "selling_price": 14,
+    "mrp": 14,
+    "unit": "pkt"
+  },
+  {
+    "id": 9,
+    "barcode": "8850006962480",
+    "name": "Colgate Dental Cream 100g",
+    "name_mr": "कोलगेट टूथपेस्ट १०० ग्रॅम",
+    "selling_price": 55,
+    "mrp": 60,
+    "unit": "pcs"
+  },
+  {
+    "id": 10,
+    "barcode": "8901030383709",
+    "name": "Good Day Butter Cookies 100g",
+    "name_mr": "गुड डे बटर बिस्किट",
+    "selling_price": 25,
+    "mrp": 25,
+    "unit": "pkt"
+  },
+  {
+    "id": 11,
+    "barcode": "8901248100108",
+    "name": "Dettol Bathing Soap 75g",
+    "name_mr": "डेटॉल साबण ७५ ग्रॅम",
+    "selling_price": 38,
+    "mrp": 40,
+    "unit": "pcs"
+  },
+  {
+    "id": 12,
+    "barcode": "8901030012345",
+    "name": "Tata Tea Gold 250g",
+    "name_mr": "टाटा चहा २५० ग्रॅम",
+    "selling_price": 130,
+    "mrp": 140,
+    "unit": "pkt"
+  }
+]

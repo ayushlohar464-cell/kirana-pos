@@ -1,0 +1,33 @@
+appId: com.kiranapos.desktop
+productName: KiranaPOS
+directories:
+  output: dist
+  buildResources: build
+
+files:
+  - "package.json"
+  - "src/**/*"
+  - "!src/**/*.test.js"
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+  - "node_modules/better-sqlite3/**/*"
+  - "node_modules/@node-rs/**/*"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: KiranaPOS

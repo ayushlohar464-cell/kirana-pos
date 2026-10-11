@@ -1,0 +1,2036 @@
+<!DOCTYPE html>
+<html lang="mr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>📱 मोबाईल बारकोड स्कॅनर | KiranaPOS</title>
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    body {
+      background-color: #0b1120;
+      color: #f8fafc;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .scanner-header {
+      background: #1e293b;
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .scanner-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scanner-logo {
+      font-size: 24px;
+    }
+
+    .scanner-title {
+      font-weight: 800;
+      font-size: 16px;
+      color: #ffffff;
+      line-height: 1.2;
+    }
+
+    .scanner-subtitle {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(239, 68, 68, 0.2);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .status-pill.connected {
+      background: rgba(16, 185, 129, 0.2);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    .scanner-content {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      flex: 1;
+      max-width: 500px;
+      margin: 0 auto;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* HTTPS Notice Banner */
+    .https-alert {
+      background: rgba(234, 179, 8, 0.15);
+      border: 1px solid #eab308;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #fef08a;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      text-align: center;
+    }
+
+    .btn-https-link {
+      background: #eab308;
+      color: #000000;
+      font-weight: 800;
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-block;
+      margin: 0 auto;
+    }
+
+    /* Camera Viewport */
+    .camera-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    }
+
+    .camera-viewport-wrap {
+      position: relative;
+      background: #000000;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    #reader {
+      width: 100% !important;
+      border: none !important;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+      border-radius: 12px;
+    }
+
+    #reader img {
+      display: none !important;
+    }
+
+    /* Permission Help Card inside viewport */
+    .permission-help-card {
+      padding: 24px 18px;
+      text-align: center;
+      color: #ffffff;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    /* Laser Guide Line */
+    .laser-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .scan-target-box {
+      width: 88%;
+      max-width: 400px;
+      height: 190px;
+      border: 2px solid rgba(16, 185, 129, 0.7);
+      border-radius: 14px;
+      position: relative;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.42);
+      transition: all 0.15s ease-out;
+    }
+
+    /* Professional Scanner Corner Accents */
+    .scan-target-box::before,
+    .scan-target-box::after {
+      content: '';
+      position: absolute;
+      width: 26px;
+      height: 26px;
+      border-color: #10b981;
+      border-style: solid;
+      pointer-events: none;
+    }
+
+    .scan-target-box::before {
+      top: -3px;
+      left: -3px;
+      border-width: 4px 0 0 4px;
+      border-top-left-radius: 14px;
+    }
+
+    .scan-target-box::after {
+      bottom: -3px;
+      right: -3px;
+      border-width: 0 4px 4px 0;
+      border-bottom-right-radius: 14px;
+    }
+
+    .scan-target-box.scan-success-flash {
+      border-color: #22c55e !important;
+      box-shadow: 0 0 35px rgba(34, 197, 94, 0.95), 0 0 0 9999px rgba(0, 0, 0, 0.42) !important;
+      transform: scale(1.03);
+    }
+
+    .laser-line {
+      position: absolute;
+      top: 0;
+      left: 6px;
+      right: 6px;
+      height: 3px;
+      background: #10b981;
+      box-shadow: 0 0 12px #10b981, 0 0 24px #10b981;
+      border-radius: 2px;
+      animation: scanLaser 1.4s ease-in-out infinite alternate;
+    }
+
+    @keyframes scanLaser {
+      0% { top: 6%; }
+      100% { top: 92%; }
+    }
+
+    .camera-controls-bar {
+      padding: 12px;
+      background: #1e293b;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-camera-toggle {
+      flex: 1;
+      padding: 12px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+      cursor: pointer;
+      background: #2563eb;
+      color: #ffffff;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-camera-toggle.active {
+      background: #dc2626;
+      box-shadow: 0 4px 10px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-photo-snap {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-weight: 800;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: none;
+      cursor: pointer;
+      background: #059669;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+    }
+
+    .btn-icon-square {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      background: #334155;
+      color: #ffffff;
+      border: 1px solid #475569;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-icon-square.active {
+      background: #eab308;
+      color: #0f172a;
+      border-color: #fde047;
+      box-shadow: 0 0 12px rgba(234, 179, 8, 0.5);
+    }
+
+    .speed-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    /* Zoom Controls Bar */
+    .zoom-controls-bar {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .zoom-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: #cbd5e1;
+    }
+
+    .zoom-badge {
+      background: #2563eb;
+      color: #ffffff;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .zoom-slider-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-zoom-step {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #334155;
+      color: #ffffff;
+      border: 1px solid #475569;
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .btn-zoom-step:active {
+      background: #2563eb;
+    }
+
+    .zoom-slider {
+      flex: 1;
+      height: 8px;
+      border-radius: 4px;
+      background: #334155;
+      outline: none;
+      -webkit-appearance: none;
+      accent-color: #3b82f6;
+    }
+
+    .zoom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: #3b82f6;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+    }
+
+    .zoom-presets {
+      display: flex;
+      gap: 6px;
+    }
+
+    .btn-zoom-preset {
+      flex: 1;
+      padding: 6px 0;
+      border-radius: 6px;
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .btn-zoom-preset.active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #3b82f6;
+    }
+
+    /* Manual Barcode Input Card */
+    .manual-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .manual-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+    }
+
+    .manual-input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .manual-input {
+      flex: 1;
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #ffffff;
+      font-size: 16px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      letter-spacing: 1px;
+    }
+
+    .manual-input:focus {
+      border-color: #3b82f6;
+    }
+
+    .btn-manual-send {
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      padding: 0 16px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    /* Feedback Flash & Toast */
+    .scan-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 16px;
+      right: 16px;
+      max-width: 460px;
+      margin: 0 auto;
+      background: #059669;
+      color: #ffffff;
+      padding: 14px 18px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+    }
+
+    .scan-toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .scan-toast.error {
+      background: #dc2626;
+    }
+
+    /* Cart & Current Bill Section */
+    .cart-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 700;
+      font-size: 14px;
+      color: #cbd5e1;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 8px;
+    }
+
+    .cart-badge {
+      background: #2563eb;
+      color: #ffffff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .btn-clear-cart {
+      background: #334155;
+      color: #f87171;
+      border: 1px solid #475569;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cart-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .cart-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .cart-item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .cart-item-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.3;
+    }
+
+    .cart-item-price-unit {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+
+    .cart-item-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .qty-control {
+      display: flex;
+      align-items: center;
+      background: #1e293b;
+      border-radius: 8px;
+      border: 1px solid #475569;
+    }
+
+    .btn-qty {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: none;
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .btn-qty:active {
+      background: #3b82f6;
+    }
+
+    .qty-val {
+      min-width: 28px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 14px;
+      color: #38bdf8;
+    }
+
+    .cart-item-total {
+      font-weight: 800;
+      font-size: 16px;
+      color: #22c55e;
+    }
+
+    .btn-remove-item {
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    /* Inline Quick Add for Uncatalogued Items */
+    .quick-add-box {
+      background: rgba(37, 99, 235, 0.12);
+      border: 1px dashed #3b82f6;
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quick-add-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .quick-add-input {
+      background: #0f172a;
+      border: 1px solid #475569;
+      color: #ffffff;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 13px;
+      outline: none;
+      flex: 1;
+    }
+
+    .btn-quick-add-save {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Fixed Bottom Action Bar */
+    .sticky-checkout-bar {
+      position: sticky;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #0f172a;
+      border-top: 2px solid #334155;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      box-shadow: 0 -8px 25px rgba(0, 0, 0, 0.6);
+      z-index: 999;
+      margin: 14px -16px -16px -16px;
+    }
+
+    .checkout-summary-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .checkout-summary-items {
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .checkout-summary-total {
+      font-size: 22px;
+      font-weight: 900;
+      color: #22c55e;
+      line-height: 1.1;
+    }
+
+    .btn-generate-bill {
+      flex: 1;
+      max-width: 230px;
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.5);
+      transition: all 0.2s;
+    }
+
+    .btn-generate-bill:disabled {
+      background: #475569;
+      color: #94a3b8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .btn-generate-bill:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    /* Modal Backdrop and Bottom Sheet */
+    .modal-sheet-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      z-index: 2000;
+      padding: 0;
+    }
+
+    .modal-sheet-overlay.show {
+      display: flex;
+    }
+
+    .modal-sheet-content {
+      background: #1e293b;
+      border-top-left-radius: 20px;
+      border-top-right-radius: 20px;
+      border: 1px solid #475569;
+      border-bottom: none;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 20px 18px;
+      box-sizing: border-box;
+      box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.7);
+      animation: slideUpSheet 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slideUpSheet {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .sheet-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 10px;
+    }
+
+    .sheet-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: #ffffff;
+    }
+
+    .btn-sheet-close {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Pay Mode Selection Grid */
+    .pay-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .btn-pay-option {
+      background: #0f172a;
+      border: 2px solid #334155;
+      border-radius: 10px;
+      padding: 10px 6px;
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-pay-option.active {
+      border-color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      color: #ffffff;
+    }
+
+    /* Thermal Receipt Card */
+    .receipt-paper {
+      background: #ffffff;
+      color: #111827;
+      padding: 16px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 13px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+
+    .receipt-paper table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0;
+      font-size: 12px;
+    }
+
+    .receipt-paper th {
+      border-bottom: 1px dashed #6b7280;
+      padding: 4px 0;
+      text-align: left;
+    }
+
+    .receipt-paper td {
+      padding: 4px 0;
+      vertical-align: top;
+    }
+
+    .receipt-divider {
+      border-top: 1px dashed #6b7280;
+      margin: 8px 0;
+    }
+
+    .btn-action-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .btn-whatsapp-share {
+      flex: 1;
+      background: #25d366;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-receipt-print {
+      flex: 1;
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-weight: 800;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .btn-next-bill {
+      width: 100%;
+      background: #10b981;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      padding: 14px;
+      font-weight: 800;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top App Bar -->
+  <header class="scanner-header">
+    <div class="scanner-brand">
+      <span class="scanner-logo">📱</span>
+      <div>
+        <div class="scanner-title">किराणा मोबाईल स्कॅनर</div>
+        <div class="scanner-subtitle" style="display: flex; align-items: center; gap: 6px;">
+          <span>POS वायरलेस बारकोड स्कॅनर</span>
+          <span class="speed-badge">⚡ हाय-स्पीड</span>
+        </div>
+      </div>
+    </div>
+    <div id="conn-status-pill" class="status-pill">
+      <span class="pulse-dot">●</span>
+      <span id="conn-status-text">तपासत आहे...</span>
+    </div>
+  </header>
+
+  <!-- Main Content View -->
+  <main class="scanner-content">
+
+    <!-- HTTPS Upgrade Banner (if accessed via plain HTTP over LAN) -->
+    <div id="https-alert-box" class="https-alert">
+      <div>🔒 <strong>मोबाईलवर लाईव्ह कॅमेरा चालवण्यासाठी:</strong></div>
+      <div style="font-size: 12px;">मोबाईल ब्राऊझर सुरक्षेसाठी HTTPS लिंक आवश्यक असते. खालील बटण दाबा:</div>
+      <a id="btn-switch-https" href="#" class="btn-https-link">🔒 HTTPS सुरक्षित मोड उघडा</a>
+      <div style="font-size: 11px; color: #cbd5e1;">(किंवा खालील हिरवे <em>'फोटो काढून स्कॅन करा'</em> बटण वापरा)</div>
+    </div>
+
+    <!-- Camera Viewport Card -->
+    <div class="camera-card">
+      <div class="camera-viewport-wrap">
+        <div id="reader"></div>
+        <div class="laser-overlay" id="laser-overlay" style="display: none;">
+          <div class="scan-target-box">
+            <div class="laser-line"></div>
+          </div>
+        </div>
+
+        <!-- Permission / Reload Help Box -->
+        <div id="permission-help-card" class="permission-help-card">
+          <div style="font-size: 42px;">📷</div>
+          <div style="font-weight: 800; font-size: 16px; color: #ef4444;">कॅमेरा परवानगी आवश्यक आहे</div>
+          <div style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin: 4px 0 10px 0;">
+            १. ब्राऊझरने वर विचारलेल्या मेसेजमध्ये <strong>'Allow'</strong> किंवा <strong>'Reload'</strong> निवडा.<br>
+            २. खालील <strong>'रिफ्रेश करा'</strong> बटण दाबा.
+          </div>
+          <button id="btn-reload-browser" class="btn btn-primary" style="padding: 10px 20px; font-weight: 800;">
+            🔄 पेज रिफ्रेश करा (Reload)
+          </button>
+        </div>
+      </div>
+
+      <div class="camera-controls-bar">
+        <!-- Option 1: Live Video Camera -->
+        <div class="btn-row">
+          <button id="btn-toggle-camera" class="btn-camera-toggle">
+            <span>📹</span> <span id="camera-btn-text">लाईव्ह कॅमेरा सुरू करा</span>
+          </button>
+          <button id="btn-flip-camera" class="btn-icon-square" title="कॅमेरा बदला">
+            🔄
+          </button>
+          <button id="btn-toggle-torch" class="btn-icon-square" title="टॉर्च चालू/बंद करा (Flashlight)" style="display: none;">
+            🔦
+          </button>
+        </div>
+
+        <!-- Zoom Controls (Slider & Quick Presets: 1x, 1.5x, 2x, 3x, 4x) -->
+        <div class="zoom-controls-bar" id="zoom-controls-bar">
+          <div class="zoom-header-row">
+            <span>🔍 कॅमेरा झूम (Camera Zoom)</span>
+            <span id="zoom-val-text" class="zoom-badge">1.0x</span>
+          </div>
+          <div class="zoom-slider-wrap">
+            <button type="button" class="btn-zoom-step" id="btn-zoom-out" title="झूम कमी करा">−</button>
+            <input type="range" id="zoom-slider" min="1" max="4" step="0.1" value="1" class="zoom-slider">
+            <button type="button" class="btn-zoom-step" id="btn-zoom-in" title="झूम वाढवा">+</button>
+          </div>
+          <div class="zoom-presets">
+            <button type="button" class="btn-zoom-preset active" data-zoom="1">1x</button>
+            <button type="button" class="btn-zoom-preset" data-zoom="1.5">1.5x</button>
+            <button type="button" class="btn-zoom-preset" data-zoom="2">2x</button>
+            <button type="button" class="btn-zoom-preset" data-zoom="3">3x</button>
+            <button type="button" class="btn-zoom-preset" data-zoom="4">4x</button>
+          </div>
+        </div>
+
+        <!-- Option 2: 100% Guaranteed Photo Camera (No HTTPS / Zero Permission issues) -->
+        <input type="file" id="camera-file-input" accept="image/*" capture="environment" style="display: none;">
+        <button id="btn-photo-snap" class="btn-photo-snap">
+          <span>📸</span> <span>थेट फोटो काढून स्कॅन करा (कोणत्याही परवानगीशिवाय)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Manual Barcode Entry -->
+    <div class="manual-card">
+      <div class="manual-title">⌨️ किंवा बारकोड नंबर टाईप करा:</div>
+      <div class="manual-input-row">
+        <input type="text" id="manual-barcode-input" class="manual-input"
+          placeholder="उदा. 890103000001" inputmode="numeric" autocomplete="off">
+        <button id="btn-send-manual" class="btn-manual-send">बिलात पाठवा 🚀</button>
+      </div>
+    </div>
+
+    <!-- Live Cart / Current Bill Card -->
+    <div class="cart-card">
+      <div class="cart-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>🛒 चालू बिल (Current Bill)</span>
+          <span id="cart-item-count-badge" class="cart-badge">0 वस्तू</span>
+        </div>
+        <button id="btn-clear-cart" class="btn-clear-cart">🗑️ बिल रिकामे करा</button>
+      </div>
+
+      <!-- Scanned Cart Items -->
+      <div id="cart-items-container" class="cart-items-list">
+        <div id="empty-cart-hint" style="text-align: center; padding: 18px 10px; color: #64748b; font-size: 13px;">
+          कॅमेऱ्यासमोर वस्तू धरा – वस्तूंचे नाव, भाव व एकूण बिल येथे आपोआप जोडले जाईल.
+        </div>
+      </div>
+
+      <!-- Inline Card to Quick-Add Unknown Barcode -->
+      <div id="quick-add-container" class="quick-add-box" style="display: none;">
+        <div style="font-size: 12px; font-weight: 700; color: #38bdf8;">
+          ✨ नवीन वस्तू सापडली: <span id="quick-add-barcode"></span>
+        </div>
+        <div class="quick-add-row">
+          <input type="text" id="quick-add-name" class="quick-add-input" placeholder="वस्तूचे नाव (उदा. साखर / चहा)">
+          <input type="number" id="quick-add-price" class="quick-add-input" placeholder="विक्री दर ₹" style="max-width: 90px;">
+          <button id="btn-save-quick-add" class="btn-quick-add-save">बिलात जोडा ➕</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Banner -->
+    <div class="help-box">
+      💡 <strong>टीप:</strong> मालाचे सर्व बारकोड स्कॅन झाल्यावर खालील हिरवे <strong>'ओके / बिल तयार करा'</strong> बटण दाबा.
+    </div>
+
+  </main>
+
+  <!-- Sticky Bottom Checkout Action Bar -->
+  <div class="sticky-checkout-bar">
+    <div class="checkout-summary-col">
+      <span id="summary-total-qty" class="checkout-summary-items">० वस्तू</span>
+      <span id="summary-grand-total" class="checkout-summary-total">₹0.00</span>
+    </div>
+    <button id="btn-open-checkout" class="btn-generate-bill" disabled>
+      <span>✅</span> <span>ओके / बिल तयार करा</span>
+    </button>
+  </div>
+
+  <!-- Modal 1: Payment & Customer Details Bottom Sheet -->
+  <div id="modal-checkout" class="modal-sheet-overlay">
+    <div class="modal-sheet-content">
+      <div class="sheet-title-row">
+        <div class="sheet-title">🧾 बिल फायनल करा (Generate Bill)</div>
+        <button id="btn-close-checkout" class="btn-sheet-close">✕</button>
+      </div>
+
+      <div style="background: #0f172a; border-radius: 12px; padding: 14px; text-align: center; margin-bottom: 16px; border: 1px solid #334155;">
+        <div style="font-size: 13px; color: #94a3b8;">एकूण देय रक्कम (Grand Total)</div>
+        <div id="checkout-modal-total" style="font-size: 32px; font-weight: 900; color: #22c55e;">₹0.00</div>
+        <div id="checkout-modal-items" style="font-size: 12px; color: #cbd5e1; margin-top: 2px;">0 वस्तू</div>
+      </div>
+
+      <div style="font-size: 13px; font-weight: 700; color: #cbd5e1; margin-bottom: 8px;">पेमेंट पद्धत निवडा:</div>
+      <div class="pay-grid">
+        <div class="btn-pay-option active" data-pay="cash">
+          <div style="font-size: 18px;">💵</div>
+          <div>रोख (Cash)</div>
+        </div>
+        <div class="btn-pay-option" data-pay="upi">
+          <div style="font-size: 18px;">📱</div>
+          <div>UPI / ऑनलाइन</div>
+        </div>
+        <div class="btn-pay-option" data-pay="credit">
+          <div style="font-size: 18px;">📝</div>
+          <div>उधारी (Udhar)</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 16px;">
+        <label style="font-size: 12px; color: #94a3b8; display: block; margin-bottom: 4px;">ग्राहकाचे नाव / मोबाईल (ऐच्छिक):</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="checkout-cust-name" class="quick-add-input" placeholder="ग्राहक नाव (उदा. रमेश पाटील)">
+          <input type="tel" id="checkout-cust-phone" class="quick-add-input" placeholder="मोबाईल नंबर" style="max-width: 130px;">
+        </div>
+      </div>
+
+      <button id="btn-confirm-sale" class="btn-next-bill">
+        <span>🧾</span> <span>पक्के बिल बनवा (Confirm & Save)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 2: Generated Receipt & Invoice Bottom Sheet -->
+  <div id="modal-receipt" class="modal-sheet-overlay">
+    <div class="modal-sheet-content">
+      <div class="sheet-title-row">
+        <div class="sheet-title">✅ बिल यशस्वीरित्या तयार झाले!</div>
+        <button id="btn-close-receipt" class="btn-sheet-close">✕</button>
+      </div>
+
+      <!-- Printable Receipt View -->
+      <div id="receipt-paper-box" class="receipt-paper">
+        <div style="text-align: center; font-weight: 800; font-size: 16px;">श्री गणेश किराणा & जनरल स्टोअर</div>
+        <div style="text-align: center; font-size: 11px; color: #4b5563;">मेन मार्केट रोड, दुकान नं. ४, फोन: ९८७६५४३२१०</div>
+        <div class="receipt-divider"></div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px;">
+          <span>बिल क्र: <strong id="receipt-inv-no">#INV-2026-0001</strong></span>
+          <span id="receipt-date">11/10/2026</span>
+        </div>
+        <div style="font-size: 11px; margin-top: 2px;">
+          ग्राहक: <span id="receipt-cust-name">साधा ग्राहक</span>
+        </div>
+        <div class="receipt-divider"></div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 50%;">वस्तू</th>
+              <th style="text-align: center;">प्रमाण</th>
+              <th style="text-align: right;">दर</th>
+              <th style="text-align: right;">रक्कम</th>
+            </tr>
+          </thead>
+          <tbody id="receipt-table-body">
+          </tbody>
+        </table>
+        <div class="receipt-divider"></div>
+        <div style="display: flex; justify-content: space-between; font-size: 15px; font-weight: 900;">
+          <span>एकूण रक्कम (Total):</span>
+          <span id="receipt-total-amount">₹0.00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 11px; margin-top: 4px; color: #4b5563;">
+          <span>पेमेंट मोड: <strong id="receipt-payment-mode">रोख (Cash)</strong></span>
+          <span>एकूण वस्तू: <strong id="receipt-items-count">0</strong></span>
+        </div>
+        <div class="receipt-divider"></div>
+        <div style="text-align: center; font-size: 11px; font-weight: 700; color: #4b5563;">
+          आमच्या दुकानाला भेट दिल्याबद्दल धन्यवाद! 🙏
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="btn-action-row">
+        <button id="btn-share-whatsapp" class="btn-whatsapp-share">
+          <span>📲</span> <span>व्हॉट्सॲपवर पाठवा</span>
+        </button>
+        <button id="btn-print-receipt" class="btn-receipt-print">
+          <span>🖨️</span> <span>प्रिंट करा</span>
+        </button>
+      </div>
+
+      <button id="btn-new-sale-customer" class="btn-next-bill">
+        <span>➕</span> <span>पुढील गिऱ्हाईक (New Bill)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="scan-toast" class="scan-toast">
+    <span>✅</span>
+    <span id="toast-message">बारकोड स्कॅन झाला!</span>
+  </div>
+
+  <!-- Load Local HTML5 QR/Barcode Code Library (Zero Internet Needed) -->
+  <script src="js/html5-qrcode.min.js"></script>
+
+  <script>
+    // Audio Context Beep Synthesis
+    let audioCtx = null;
+    function playBeep() {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(1800, audioCtx.currentTime); // 1.8 kHz clear POS beep
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.09);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.09);
+      } catch (e) {
+        console.warn('Audio beep error:', e);
+      }
+    }
+
+    function triggerVibration() {
+      if ('vibrate' in navigator) {
+        navigator.vibrate([70]);
+      }
+    }
+
+    // State Variables
+    let html5QrCode = null;
+    let nativeBarcodeDetector = null;
+    let nativeLoopRunning = false;
+    let isNativeProcessing = false;
+    let isCameraRunning = false;
+    let currentCameraFacing = 'environment'; // back camera default
+    let lastScannedBarcode = '';
+    let lastScanTimestamp = 0;
+    let isTorchOn = false;
+
+    // Mobile Bill / Cart State
+    let cartItems = [];
+    let currentSelectedPayMode = 'cash';
+    let lastCompletedSale = null;
+
+    // Elements
+    const statusPill = document.getElementById('conn-status-pill');
+    const statusText = document.getElementById('conn-status-text');
+    const toast = document.getElementById('scan-toast');
+    const toastMsg = document.getElementById('toast-message');
+    const btnToggleCamera = document.getElementById('btn-toggle-camera');
+    const cameraBtnText = document.getElementById('camera-btn-text');
+    const btnFlipCamera = document.getElementById('btn-flip-camera');
+    const btnToggleTorch = document.getElementById('btn-toggle-torch');
+    const laserOverlay = document.getElementById('laser-overlay');
+    const permissionHelpCard = document.getElementById('permission-help-card');
+    const btnReloadBrowser = document.getElementById('btn-reload-browser');
+    const btnPhotoSnap = document.getElementById('btn-photo-snap');
+    const cameraFileInput = document.getElementById('camera-file-input');
+    const manualInput = document.getElementById('manual-barcode-input');
+    const btnSendManual = document.getElementById('btn-send-manual');
+    const httpsAlertBox = document.getElementById('https-alert-box');
+    const btnSwitchHttps = document.getElementById('btn-switch-https');
+
+    // Cart Elements
+    const cartItemsContainer = document.getElementById('cart-items-container');
+    const cartItemCountBadge = document.getElementById('cart-item-count-badge');
+    const btnClearCart = document.getElementById('btn-clear-cart');
+    const quickAddContainer = document.getElementById('quick-add-container');
+    const quickAddBarcode = document.getElementById('quick-add-barcode');
+    const quickAddName = document.getElementById('quick-add-name');
+    const quickAddPrice = document.getElementById('quick-add-price');
+    const btnSaveQuickAdd = document.getElementById('btn-save-quick-add');
+
+    // Bottom Sticky Bar Elements
+    const summaryTotalQty = document.getElementById('summary-total-qty');
+    const summaryGrandTotal = document.getElementById('summary-grand-total');
+    const btnOpenCheckout = document.getElementById('btn-open-checkout');
+
+    // Modal 1: Checkout Elements
+    const modalCheckout = document.getElementById('modal-checkout');
+    const btnCloseCheckout = document.getElementById('btn-close-checkout');
+    const checkoutModalTotal = document.getElementById('checkout-modal-total');
+    const checkoutModalItems = document.getElementById('checkout-modal-items');
+    const checkoutCustName = document.getElementById('checkout-cust-name');
+    const checkoutCustPhone = document.getElementById('checkout-cust-phone');
+    const btnConfirmSale = document.getElementById('btn-confirm-sale');
+
+    // Modal 2: Receipt Elements
+    const modalReceipt = document.getElementById('modal-receipt');
+    const btnCloseReceipt = document.getElementById('btn-close-receipt');
+    const receiptInvNo = document.getElementById('receipt-inv-no');
+    const receiptDate = document.getElementById('receipt-date');
+    const receiptCustName = document.getElementById('receipt-cust-name');
+    const receiptTableBody = document.getElementById('receipt-table-body');
+    const receiptTotalAmount = document.getElementById('receipt-total-amount');
+    const receiptPaymentMode = document.getElementById('receipt-payment-mode');
+    const receiptItemsCount = document.getElementById('receipt-items-count');
+    const btnShareWhatsapp = document.getElementById('btn-share-whatsapp');
+    const btnPrintReceipt = document.getElementById('btn-print-receipt');
+    const btnNewSaleCustomer = document.getElementById('btn-new-sale-customer');
+
+    // Initialize Native BarcodeDetector (Supported in Android Chrome / Chromium for ultra-fast <10ms detection)
+    if ('BarcodeDetector' in window) {
+      try {
+        nativeBarcodeDetector = new BarcodeDetector({
+          formats: ['ean_13', 'ean_8', 'code_128', 'code_39', 'upc_a', 'upc_e', 'qr_code'],
+        });
+        console.log('⚡ Native BarcodeDetector initialized for high-speed scanning');
+      } catch (e) {
+        try {
+          nativeBarcodeDetector = new BarcodeDetector();
+          console.log('⚡ Generic Native BarcodeDetector initialized');
+        } catch (err) {
+          console.warn('Native BarcodeDetector not available:', err);
+        }
+      }
+    }
+
+    // Zoom Controls
+    let currentZoomLevel = 1.0;
+    const zoomSlider = document.getElementById('zoom-slider');
+    const zoomValText = document.getElementById('zoom-val-text');
+    const btnZoomIn = document.getElementById('btn-zoom-in');
+    const btnZoomOut = document.getElementById('btn-zoom-out');
+    const zoomPresets = document.querySelectorAll('.btn-zoom-preset');
+
+    function getActiveVideoTrack() {
+      const videoEl = document.querySelector('#reader video');
+      if (videoEl && videoEl.srcObject) {
+        const tracks = videoEl.srcObject.getVideoTracks();
+        if (tracks && tracks.length > 0) return tracks[0];
+      }
+      return null;
+    }
+
+    async function applyZoom(val) {
+      currentZoomLevel = Math.max(1, Math.min(4, Math.round(val * 10) / 10));
+      if (zoomSlider) zoomSlider.value = currentZoomLevel;
+      if (zoomValText) zoomValText.textContent = `${currentZoomLevel.toFixed(1)}x`;
+
+      zoomPresets.forEach(btn => {
+        btn.classList.toggle('active', parseFloat(btn.dataset.zoom) === currentZoomLevel);
+      });
+
+      // 1. Hardware Optical / Digital Track Zoom (Mobile Chrome / Camera API)
+      const track = getActiveVideoTrack();
+      if (track && track.getCapabilities) {
+        try {
+          const caps = track.getCapabilities();
+          if (caps.zoom) {
+            const minZ = caps.zoom.min || 1;
+            const maxZ = caps.zoom.max || 5;
+            const targetZ = Math.min(Math.max(currentZoomLevel, minZ), maxZ);
+            await track.applyConstraints({ advanced: [{ zoom: targetZ }] });
+          }
+        } catch (e) {
+          console.warn('Hardware zoom not supported:', e);
+        }
+      }
+
+      // 2. CSS Visual Transform Zoom (Universal fallback on every phone)
+      const videoEl = document.querySelector('#reader video');
+      if (videoEl) {
+        videoEl.style.transform = `scale(${currentZoomLevel})`;
+        videoEl.style.transformOrigin = 'center center';
+        videoEl.style.transition = 'transform 0.15s ease-out';
+      }
+    }
+
+    if (zoomSlider) {
+      zoomSlider.addEventListener('input', (e) => applyZoom(parseFloat(e.target.value)));
+    }
+    if (btnZoomIn) {
+      btnZoomIn.addEventListener('click', () => applyZoom(currentZoomLevel + 0.5));
+    }
+    if (btnZoomOut) {
+      btnZoomOut.addEventListener('click', () => applyZoom(currentZoomLevel - 0.5));
+    }
+    zoomPresets.forEach(btn => {
+      btn.addEventListener('click', () => applyZoom(parseFloat(btn.dataset.zoom)));
+    });
+
+    // Flashlight (टॉर्च) Toggle
+    if (btnToggleTorch) {
+      btnToggleTorch.addEventListener('click', async () => {
+        const track = getActiveVideoTrack();
+        if (!track || !track.getCapabilities) return;
+        try {
+          const caps = track.getCapabilities();
+          if (caps.torch) {
+            isTorchOn = !isTorchOn;
+            await track.applyConstraints({ advanced: [{ torch: isTorchOn }] });
+            btnToggleTorch.classList.toggle('active', isTorchOn);
+            showToast(isTorchOn ? '🔦 टॉर्च सुरू केली' : '🔦 टॉर्च बंद केली');
+          }
+        } catch (err) {
+          console.warn('Torch toggle error:', err);
+        }
+      });
+    }
+
+    // Check secure context for HTTPS alert
+    if (!window.isSecureContext && location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+      httpsAlertBox.style.display = 'flex';
+      btnSwitchHttps.href = `https://${location.hostname}:3443/scanner.html`;
+    }
+
+    function showToast(message, isError = false) {
+      toastMsg.textContent = message;
+      toast.className = isError ? 'scan-toast error show' : 'scan-toast show';
+      setTimeout(() => {
+        toast.className = 'scan-toast';
+      }, 2500);
+    }
+
+    // Instant Visual Feedback Flash
+    function flashTargetBox() {
+      const box = document.querySelector('.scan-target-box');
+      if (box) {
+        box.classList.add('scan-success-flash');
+        setTimeout(() => box.classList.remove('scan-success-flash'), 350);
+      }
+    }
+
+    // 1. Check Server Connection Health
+    async function checkConnection() {
+      try {
+        const res = await fetch('/api/network-info');
+        if (res.ok) {
+          statusPill.className = 'status-pill connected';
+          statusText.textContent = '🟢 जोडले आहे (Online)';
+        } else {
+          statusPill.className = 'status-pill';
+          statusText.textContent = '🔴 डिस्कनेक्ट';
+        }
+      } catch (err) {
+        statusPill.className = 'status-pill';
+        statusText.textContent = '🔴 डिस्कनेक्ट';
+      }
+    }
+
+    setInterval(checkConnection, 5000);
+    checkConnection();
+
+    // 2. Mobile Cart Management
+    window.updateCartQty = function(barcode, change) {
+      const item = cartItems.find(it => it.barcode === barcode);
+      if (!item) return;
+      item.qty += change;
+      if (item.qty <= 0) {
+        cartItems = cartItems.filter(it => it.barcode !== barcode);
+      }
+      playBeep();
+      renderCart();
+    };
+
+    window.removeFromCart = function(barcode) {
+      cartItems = cartItems.filter(it => it.barcode !== barcode);
+      renderCart();
+      showToast('वस्तू बिलातून काढली');
+    };
+
+    function addToMobileCart(prod) {
+      const existing = cartItems.find(it => it.barcode === prod.barcode);
+      if (existing) {
+        existing.qty = (existing.qty || 1) + 1;
+      } else {
+        cartItems.push({
+          id: prod.id || Date.now(),
+          barcode: prod.barcode,
+          name: prod.name_mr || prod.name,
+          name_en: prod.name,
+          selling_price: Number(prod.selling_price) || 0,
+          unit: prod.unit || 'pkt',
+          qty: 1
+        });
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      let totalQty = 0;
+      let grandTotal = 0;
+
+      if (cartItems.length === 0) {
+        cartItemsContainer.innerHTML = `
+          <div id="empty-cart-hint" style="text-align: center; padding: 18px 10px; color: #64748b; font-size: 13px;">
+            कॅमेऱ्यासमोर वस्तू धरा – वस्तूंचे नाव, भाव व एकूण बिल येथे आपोआप जोडले जाईल.
+          </div>
+        `;
+        summaryTotalQty.textContent = '० वस्तू';
+        summaryGrandTotal.textContent = '₹0.00';
+        cartItemCountBadge.textContent = '0 वस्तू';
+        btnOpenCheckout.disabled = true;
+        return;
+      }
+
+      btnOpenCheckout.disabled = false;
+      cartItemsContainer.innerHTML = '';
+
+      cartItems.forEach(item => {
+        const itemTotal = item.qty * item.selling_price;
+        totalQty += item.qty;
+        grandTotal += itemTotal;
+
+        const el = document.createElement('div');
+        el.className = 'cart-item';
+        el.innerHTML = `
+          <div class="cart-item-top">
+            <div>
+              <div class="cart-item-name">${item.name}</div>
+              <div class="cart-item-price-unit">दर: ₹${item.selling_price.toFixed(2)} / ${item.unit} (${item.barcode})</div>
+            </div>
+            <button class="btn-remove-item" onclick="removeFromCart('${item.barcode}')" title="काढून टाका">✕</button>
+          </div>
+          <div class="cart-item-bottom">
+            <div class="qty-control">
+              <button class="btn-qty" onclick="updateCartQty('${item.barcode}', -1)">−</button>
+              <span class="qty-val">${item.qty}</span>
+              <button class="btn-qty" onclick="updateCartQty('${item.barcode}', 1)">+</button>
+            </div>
+            <div class="cart-item-total">₹${itemTotal.toFixed(2)}</div>
+          </div>
+        `;
+        cartItemsContainer.appendChild(el);
+      });
+
+      summaryTotalQty.textContent = `${totalQty} वस्तू`;
+      summaryGrandTotal.textContent = `₹${grandTotal.toFixed(2)}`;
+      cartItemCountBadge.textContent = `${totalQty} वस्तू`;
+    }
+
+    // Clear Cart
+    btnClearCart.addEventListener('click', () => {
+      if (cartItems.length === 0) return;
+      if (confirm('चालू बिल रिकामे करायचे आहे का?')) {
+        cartItems = [];
+        renderCart();
+        showToast('बिल रिकामे केले');
+      }
+    });
+
+    // Quick Add Unknown Item
+    function promptQuickAdd(barcode) {
+      quickAddBarcode.textContent = barcode;
+      quickAddContainer.style.display = 'flex';
+      quickAddName.value = '';
+      quickAddPrice.value = '';
+      quickAddName.focus();
+    }
+
+    btnSaveQuickAdd.addEventListener('click', async () => {
+      const barcode = quickAddBarcode.textContent.trim();
+      const name = quickAddName.value.trim() || `किराणा वस्तू (${barcode})`;
+      const price = parseFloat(quickAddPrice.value) || 10;
+
+      const prodObj = {
+        barcode,
+        name,
+        name_mr: name,
+        selling_price: price,
+        mrp: price,
+        unit: 'pkt'
+      };
+
+      try {
+        await fetch('/api/products', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(prodObj)
+        });
+      } catch (e) {}
+
+      addToMobileCart(prodObj);
+      quickAddContainer.style.display = 'none';
+      showToast(`✅ ${name} बिलात जोडले!`);
+    });
+
+    // 3. Send Scanned Barcode to Server & Add to Mobile Bill
+    async function sendBarcodeToServer(barcode) {
+      const code = String(barcode).trim();
+      if (!code) return;
+
+      playBeep();
+      triggerVibration();
+
+      try {
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ barcode: code }),
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          if (data.found && data.product) {
+            addToMobileCart(data.product);
+            showToast(`✅ ${data.product.name_mr || data.product.name} (₹${data.product.selling_price}) जोडले!`);
+          } else {
+            promptQuickAdd(code);
+            showToast(`⚠️ बारकोड '${code}' कॅटलॉगमध्ये नाही. नाव व दर टाका!`, true);
+          }
+        } else {
+          showToast(`⚠️ एरर: ${data.error || 'स्कॅन करता आले नाही'}`, true);
+        }
+      } catch (err) {
+        showToast('⚠️ कॉम्प्युटरशी संपर्क झाला नाही! Wi-Fi तपासा.', true);
+      }
+    }
+
+    // 4. Barcode Detected Callback (with debounce)
+    function onBarcodeDetected(decodedText) {
+      const code = String(decodedText).trim();
+      if (!code) return;
+
+      const now = Date.now();
+      // Debounce identical barcode for 1.2s to prevent unintentional duplicate line items
+      if (code === lastScannedBarcode && (now - lastScanTimestamp) < 1200) {
+        return;
+      }
+
+      lastScannedBarcode = code;
+      lastScanTimestamp = now;
+
+      flashTargetBox();
+      sendBarcodeToServer(code);
+    }
+
+    // Native Hardware-Accelerated Barcode Detector Loop (Runs directly on GPU / Camera Frame callback)
+    function startNativeDetectorLoop() {
+      if (!nativeBarcodeDetector) return;
+      nativeLoopRunning = true;
+
+      const videoEl = document.querySelector('#reader video');
+      if (!videoEl) {
+        if (isCameraRunning) setTimeout(startNativeDetectorLoop, 120);
+        return;
+      }
+
+      async function scanFrame() {
+        if (!nativeLoopRunning || !isCameraRunning) return;
+
+        if (!isNativeProcessing && videoEl.readyState >= 2 && !videoEl.paused) {
+          isNativeProcessing = true;
+          try {
+            const detected = await nativeBarcodeDetector.detect(videoEl);
+            if (detected && detected.length > 0) {
+              const code = detected[0].rawValue;
+              if (code) {
+                onBarcodeDetected(code);
+              }
+            }
+          } catch (err) {
+            // Frame skip
+          } finally {
+            isNativeProcessing = false;
+          }
+        }
+
+        if (nativeLoopRunning && isCameraRunning) {
+          if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+            videoEl.requestVideoFrameCallback(scanFrame);
+          } else {
+            requestAnimationFrame(scanFrame);
+          }
+        }
+      }
+
+      if ('requestVideoFrameCallback' in HTMLVideoElement.prototype) {
+        videoEl.requestVideoFrameCallback(scanFrame);
+      } else {
+        requestAnimationFrame(scanFrame);
+      }
+    }
+
+    function stopNativeDetectorLoop() {
+      nativeLoopRunning = false;
+    }
+
+    // Apply continuous auto-focus, exposure & detect torch support
+    async function applyCameraOptimizations() {
+      const track = getActiveVideoTrack();
+      if (!track || !track.getCapabilities) return;
+      try {
+        const caps = track.getCapabilities();
+
+        // 1. Continuous autofocus & exposure
+        const advanced = [];
+        if (caps.focusMode && caps.focusMode.includes('continuous')) {
+          advanced.push({ focusMode: 'continuous' });
+        }
+        if (caps.exposureMode && caps.exposureMode.includes('continuous')) {
+          advanced.push({ exposureMode: 'continuous' });
+        }
+        if (advanced.length > 0) {
+          await track.applyConstraints({ advanced });
+          console.log('⚡ Continuous auto-focus & exposure active');
+        }
+
+        // 2. Flashlight (Torch) capability
+        if (caps.torch && btnToggleTorch) {
+          btnToggleTorch.style.display = 'inline-flex';
+        }
+      } catch (err) {
+        console.warn('Camera optimization note:', err);
+      }
+    }
+
+    // 5. Start / Stop Live Camera Engine
+    async function startCamera() {
+      permissionHelpCard.style.display = 'none';
+
+      if (!html5QrCode) {
+        html5QrCode = new Html5Qrcode("reader", {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.CODE_39,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+            Html5QrcodeSupportedFormats.QR_CODE,
+          ],
+          experimentalFeatures: {
+            useBarCodeDetectorIfSupported: true,
+          },
+          verbose: false,
+        });
+      }
+
+      // Fast frame sampling (28 FPS) with wide detection reticle
+      const config = {
+        fps: 28,
+        qrbox: (viewfinderWidth, viewfinderHeight) => {
+          const w = Math.min(Math.floor(viewfinderWidth * 0.90), 420);
+          const h = Math.min(Math.floor(viewfinderHeight * 0.65), 240);
+          return { width: Math.max(w, 280), height: Math.max(h, 170) };
+        },
+        aspectRatio: 1.333333,
+        videoConstraints: {
+          facingMode: currentCameraFacing,
+          width: { min: 640, ideal: 1280, max: 1920 },
+          height: { min: 480, ideal: 720, max: 1080 },
+        },
+      };
+
+      try {
+        await html5QrCode.start(
+          { facingMode: currentCameraFacing },
+          config,
+          onBarcodeDetected,
+          () => {} // suppress frame missed scan logs
+        );
+
+        isCameraRunning = true;
+        btnToggleCamera.classList.add('active');
+        cameraBtnText.textContent = 'कॅमेरा थांबवा';
+        laserOverlay.style.display = 'flex';
+        permissionHelpCard.style.display = 'none';
+
+        // Apply hardware autofocus, torch discovery, zoom & native loop
+        setTimeout(async () => {
+          await applyCameraOptimizations();
+          await applyZoom(currentZoomLevel);
+          startNativeDetectorLoop();
+        }, 250);
+      } catch (err) {
+        console.error('Camera start error:', err);
+        permissionHelpCard.style.display = 'flex';
+        laserOverlay.style.display = 'none';
+        showToast('⚠️ कॅमेरा सुरू करता आला नाही! वर आलेले Reload बटण दाबा.', true);
+      }
+    }
+
+    async function stopCamera() {
+      stopNativeDetectorLoop();
+
+      if (isTorchOn && btnToggleTorch) {
+        const track = getActiveVideoTrack();
+        if (track) {
+          try { await track.applyConstraints({ advanced: [{ torch: false }] }); } catch(e) {}
+        }
+        isTorchOn = false;
+        btnToggleTorch.classList.remove('active');
+      }
+      if (btnToggleTorch) btnToggleTorch.style.display = 'none';
+
+      if (html5QrCode && isCameraRunning) {
+        try {
+          await html5QrCode.stop();
+        } catch (e) {
+          console.warn('Camera stop error:', e);
+        }
+      }
+      isCameraRunning = false;
+      btnToggleCamera.classList.remove('active');
+      cameraBtnText.textContent = 'लाईव्ह कॅमेरा सुरू करा';
+      laserOverlay.style.display = 'none';
+    }
+
+    btnToggleCamera.addEventListener('click', () => {
+      if (isCameraRunning) {
+        stopCamera();
+      } else {
+        startCamera();
+      }
+    });
+
+    btnFlipCamera.addEventListener('click', async () => {
+      currentCameraFacing = currentCameraFacing === 'environment' ? 'user' : 'environment';
+      if (isCameraRunning) {
+        await stopCamera();
+        await startCamera();
+      }
+    });
+
+    btnReloadBrowser.addEventListener('click', () => {
+      window.location.reload();
+    });
+
+    // 6. Direct Photo Snapshot Scanner (Instant Native Bitmap + Fallback)
+    btnPhotoSnap.addEventListener('click', () => {
+      cameraFileInput.click();
+    });
+
+    cameraFileInput.addEventListener('change', async (e) => {
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      showToast('फोटो तपासत आहे... ⏳');
+
+      try {
+        // 1. Try ultra-fast native BarcodeDetector on image bitmap (< 25ms)
+        if (nativeBarcodeDetector && 'createImageBitmap' in window) {
+          try {
+            const bitmap = await createImageBitmap(file);
+            const detected = await nativeBarcodeDetector.detect(bitmap);
+            if (detected && detected.length > 0 && detected[0].rawValue) {
+              const code = String(detected[0].rawValue).trim();
+              if (code) {
+                flashTargetBox();
+                sendBarcodeToServer(code);
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('Native image scan fallback to html5QrCode:', e);
+          }
+        }
+
+        // 2. Robust html5QrCode library fallback
+        if (!html5QrCode) {
+          html5QrCode = new Html5Qrcode("reader");
+        }
+        const decodedText = await html5QrCode.scanFile(file, true);
+        flashTargetBox();
+        sendBarcodeToServer(decodedText);
+      } catch (err) {
+        console.warn('Scan file error:', err);
+        showToast('⚠️ फोटोमध्ये बारकोड स्पष्ट दिसला नाही. कृपया थोडा जवळून फोटो काढा.', true);
+      } finally {
+        cameraFileInput.value = '';
+      }
+    });
+
+    // 7. Manual Barcode Input
+    function handleManualSend() {
+      const val = manualInput.value.trim();
+      if (!val) {
+        showToast('कृपया बारकोड नंबर टाका!', true);
+        return;
+      }
+      sendBarcodeToServer(val);
+      manualInput.value = '';
+      manualInput.focus();
+    }
+
+    btnSendManual.addEventListener('click', handleManualSend);
+    manualInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleManualSend();
+    });
+
+    // 8. Checkout & Bill Generation Flow
+    btnOpenCheckout.addEventListener('click', () => {
+      if (cartItems.length === 0) return;
+      let total = cartItems.reduce((acc, it) => acc + (it.qty * it.selling_price), 0);
+      let qty = cartItems.reduce((acc, it) => acc + it.qty, 0);
+
+      checkoutModalTotal.textContent = `₹${total.toFixed(2)}`;
+      checkoutModalItems.textContent = `${qty} वस्तूंचे बिल`;
+      modalCheckout.classList.add('show');
+    });
+
+    btnCloseCheckout.addEventListener('click', () => {
+      modalCheckout.classList.remove('show');
+    });
+
+    // Pay mode button selection
+    document.querySelectorAll('.btn-pay-option').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-pay-option').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentSelectedPayMode = btn.dataset.pay;
+      });
+    });
+
+    // Confirm Sale & Generate Bill
+    btnConfirmSale.addEventListener('click', async () => {
+      if (cartItems.length === 0) return;
+
+      btnConfirmSale.disabled = true;
+      btnConfirmSale.textContent = 'बिल तयार होत आहे... ⏳';
+
+      let grandTotal = cartItems.reduce((acc, it) => acc + (it.qty * it.selling_price), 0);
+
+      const payload = {
+        customer_name: checkoutCustName.value.trim() || 'साधा ग्राहक (Walk-in)',
+        customer_phone: checkoutCustPhone.value.trim() || '',
+        payment_mode: currentSelectedPayMode,
+        items: cartItems.map(it => ({
+          barcode: it.barcode,
+          name: it.name,
+          unit: it.unit,
+          selling_price: it.selling_price,
+          qty: it.qty,
+          total: it.qty * it.selling_price
+        })),
+        subtotal: grandTotal,
+        discount: 0,
+        grand_total: grandTotal
+      };
+
+      try {
+        const res = await fetch('/api/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (data.success && data.sale) {
+          lastCompletedSale = data.sale;
+          modalCheckout.classList.remove('show');
+
+          // Populate Receipt
+          populateReceiptModal(data.sale);
+          modalReceipt.classList.add('show');
+
+          // Clear cart
+          cartItems = [];
+          renderCart();
+          showToast(`🎉 बिल तयार झाले: ${data.sale.invoice_no}!`);
+        } else {
+          showToast('⚠️ बिल तयार करता आले नाही!', true);
+        }
+      } catch (err) {
+        console.error('Sale creation error:', err);
+        showToast('⚠️ कॉम्प्युटर सर्व्हरशी संपर्क झाला नाही!', true);
+      } finally {
+        btnConfirmSale.disabled = false;
+        btnConfirmSale.innerHTML = '<span>🧾</span> <span>पक्के बिल बनवा (Confirm & Save)</span>';
+      }
+    });
+
+    function populateReceiptModal(sale) {
+      receiptInvNo.textContent = sale.invoice_no;
+      const d = new Date(sale.created_at);
+      receiptDate.textContent = d.toLocaleDateString('en-IN') + ' ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      receiptCustName.textContent = sale.customer_name + (sale.customer_phone ? ` (${sale.customer_phone})` : '');
+
+      receiptTableBody.innerHTML = '';
+      sale.items.forEach(it => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${it.name}</td>
+          <td style="text-align: center;">${it.qty}</td>
+          <td style="text-align: right;">₹${Number(it.selling_price).toFixed(2)}</td>
+          <td style="text-align: right; font-weight: 700;">₹${Number(it.total).toFixed(2)}</td>
+        `;
+        receiptTableBody.appendChild(tr);
+      });
+
+      receiptTotalAmount.textContent = `₹${Number(sale.grand_total).toFixed(2)}`;
+      const payNames = { cash: '💵 रोख (Cash)', upi: '📱 UPI / Online', credit: '📝 उधारी (Udhar)' };
+      receiptPaymentMode.textContent = payNames[sale.payment_mode] || sale.payment_mode;
+      receiptItemsCount.textContent = `${sale.total_items}`;
+    }
+
+    btnCloseReceipt.addEventListener('click', () => {
+      modalReceipt.classList.remove('show');
+    });
+
+    btnNewSaleCustomer.addEventListener('click', () => {
+      modalReceipt.classList.remove('show');
+      showToast('पुढील बिलासाठी कॅमेरा तयार आहे 📹');
+    });
+
+    btnPrintReceipt.addEventListener('click', () => {
+      window.print();
+    });
+
+    btnShareWhatsapp.addEventListener('click', () => {
+      if (!lastCompletedSale) return;
+      const s = lastCompletedSale;
+      const d = new Date(s.created_at).toLocaleDateString('en-IN');
+      const lines = [
+        `🛒 *${s.shop_name}*`,
+        `📍 ${s.shop_address} | 📞 ${s.shop_phone}`,
+        `--------------------------------`,
+        `🧾 बिल क्र: *${s.invoice_no}*`,
+        `📅 तारीख: ${d} | ग्राहक: ${s.customer_name}`,
+        `--------------------------------`,
+        ...s.items.map(it => `• ${it.name} x ${it.qty} = ₹${Number(it.total).toFixed(2)}`),
+        `--------------------------------`,
+        `💰 *एकूण रक्कम (Total): ₹${Number(s.grand_total).toFixed(2)}*`,
+        `💳 पेमेंट: ${s.payment_mode === 'cash' ? 'रोख' : s.payment_mode}`,
+        `--------------------------------`,
+        `आमच्या दुकानाला भेट दिल्याबद्दल धन्यवाद! 🙏`
+      ];
+
+      const text = encodeURIComponent(lines.join('\n'));
+      const phone = (s.customer_phone || '').replace(/[^0-9]/g, '');
+      const url = phone ? `https://wa.me/91${phone}?text=${text}` : `https://wa.me/?text=${text}`;
+      window.open(url, '_blank');
+    });
+
+    // Try starting camera after delay
+    window.addEventListener('load', () => {
+      renderCart();
+      setTimeout(() => {
+        startCamera();
+      }, 400);
+    });
+  </script>
+</body>
+</html>
