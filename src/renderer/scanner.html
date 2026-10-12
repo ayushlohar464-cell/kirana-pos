@@ -1551,21 +1551,39 @@
           return;
         }
 
-        container.innerHTML = quickProds.map(p => `
+        container.innerHTML = quickProds.map(p => {
+          const rawPrice = Number(p.selling_price) || 0;
+          const displayPrice = rawPrice > 500 ? (rawPrice / 100) : rawPrice;
+          return `
           <button type="button" class="baba-mobile-btn" onclick="sendBarcodeToServer('${p.quick_code}')" title="${p.name} बिलात जोडा">
             <span class="baba-mobile-num">${p.quick_code}</span>
             <div class="baba-mobile-info">
-              <span class="baba-mobile-name">${p.name_mr || p.name}</span>
-              <span class="baba-mobile-price">₹${p.selling_price}</span>
+              <span class="baba-mobile-name">${p.name_mr || p.name_regional || p.name}</span>
+              <span class="baba-mobile-price">₹${displayPrice.toFixed(0)}</span>
             </div>
           </button>
-        `).join('');
+        `;
+        }).join('');
       } catch (e) {
         console.warn('Error loading Baba mobile quick bar:', e);
       }
     }
 
     loadBabaMobileQuickBar();
+
+    // Live Multi-Device Sync for Baba Quick Bar
+    try {
+      const sseStream = new EventSource('/api/scan-stream');
+      sseStream.onmessage = (e) => {
+        if (!e.data || e.data.startsWith(':')) return;
+        try {
+          const payload = JSON.parse(e.data);
+          if (payload.type === 'catalog_updated') {
+            loadBabaMobileQuickBar();
+          }
+        } catch (err) {}
+      };
+    } catch (e) {}
 
     // 2. Mobile Cart Management
     window.updateCartQty = function(barcode, change) {
@@ -1587,16 +1605,18 @@
 
     function addToMobileCart(prod) {
       const existing = cartItems.find(it => it.barcode === prod.barcode);
+      const rawPrice = Number(prod.selling_price) || 0;
+      const priceInRupees = rawPrice > 500 ? (rawPrice / 100) : rawPrice;
       if (existing) {
         existing.qty = (existing.qty || 1) + 1;
       } else {
         cartItems.push({
           id: prod.id || Date.now(),
           barcode: prod.barcode,
-          name: prod.name_mr || prod.name,
+          name: prod.name_mr || prod.name_regional || prod.name,
           name_en: prod.name,
-          selling_price: Number(prod.selling_price) || 0,
-          unit: prod.unit || 'pkt',
+          selling_price: priceInRupees,
+          unit: prod.unit_code || prod.unit || 'pkt',
           qty: 1
         });
       }

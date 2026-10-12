@@ -656,6 +656,11 @@ class PosEngine {
             await this.handleIncomingMobileBarcode(payload.barcode, payload.product);
           } else if (payload.type === 'sale_completed' && payload.sale) {
             this.handleIncomingCompletedSale(payload.sale);
+          } else if (payload.type === 'catalog_updated') {
+            await this.renderBabaQuickBar();
+            if (window.app && typeof window.app.loadProductsList === 'function') {
+              window.app.loadProductsList();
+            }
           }
         } catch (err) {
           console.warn('SSE parse error:', err);

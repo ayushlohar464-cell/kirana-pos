@@ -53,6 +53,7 @@ function getLocalIpAddress() {
 const PRODUCTS_FILE = path.join(__dirname, 'data/products.json');
 const SALES_FILE = path.join(__dirname, 'data/sales.json');
 const SETTINGS_FILE = path.join(__dirname, 'data/settings.json');
+const CUSTOMERS_FILE = path.join(__dirname, 'data/customers.json');
 
 const DEFAULT_SETTINGS = {
   shop_name: 'Lohar Kirana Store',
@@ -81,6 +82,29 @@ function saveSettings(settings) {
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2), 'utf8');
   } catch (e) {
     console.error('Error saving settings.json:', e);
+  }
+}
+
+function getCustomers() {
+  try {
+    if (fs.existsSync(CUSTOMERS_FILE)) {
+      return JSON.parse(fs.readFileSync(CUSTOMERS_FILE, 'utf8'));
+    }
+  } catch (e) {
+    console.error('Error reading customers.json:', e);
+  }
+  return [
+    { id: 1, name: 'Ramesh Patel', phone: '9820011223', address: 'Flat 102, Shanti Niwas', credit_limit: 500000, current_balance: 145000, is_active: 1 },
+    { id: 2, name: 'Sanjay Shinde', phone: '9833445566', address: 'Shop 4, Station Road', credit_limit: 300000, current_balance: 52000, is_active: 1 },
+    { id: 3, name: 'Pooja Kulkarni', phone: '9819283746', address: 'Building B, Sector 3', credit_limit: 200000, current_balance: 0, is_active: 1 },
+  ];
+}
+
+function saveCustomers(customers) {
+  try {
+    fs.writeFileSync(CUSTOMERS_FILE, JSON.stringify(customers, null, 2), 'utf8');
+  } catch (e) {
+    console.error('Error saving customers.json:', e);
   }
 }
 
@@ -280,7 +304,7 @@ async function handleRequest(req, res) {
   // 4. API: Products Catalog
   if (pathname === '/api/products' && req.method === 'GET') {
     const products = getProducts();
-    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(JSON.stringify(products));
     return;
   }
@@ -291,25 +315,96 @@ async function handleRequest(req, res) {
     req.on('end', () => {
       try {
         const newProd = JSON.parse(body);
-        if (!newProd.barcode || !newProd.name) {
-          res.writeHead(400, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Barcode and name required' }));
+        if (!newProd.name) {
+          res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ error: 'Product name is required' }));
           return;
         }
+
         const products = getProducts();
-        const existingIdx = products.findIndex(p => p.barcode === newProd.barcode);
+        if (!newProd.barcode) {
+          newProd.barcode = '8901' + Date.now().toString().slice(-8);
+        }
+
+        // Match existing by id first, then by barcode
+        let existingIdx = -1;
+        if (newProd.id) {
+          existingIdx = products.findIndex(p => p.id === Number(newProd.id));
+        }
+        if (existingIdx === -1 && newProd.barcode) {
+          existingIdx = products.findIndex(p => p.barcode === String(newProd.barcode).trim());
+        }
+
         if (existingIdx >= 0) {
           products[existingIdx] = { ...products[existingIdx], ...newProd };
+          newProd.id = products[existingIdx].id;
         } else {
-          newProd.id = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
+          newProd.id = newProd.id ? Number(newProd.id) : (products.length > 0 ? Math.max(...products.map(p => Number(p.id) || 0)) + 1 : 1);
           products.push(newProd);
         }
+
         saveProducts(products);
+        console.log(`[📦 Catalog Synced]: ${newProd.name} (Code: ${newProd.quick_code || '-'}, Barcode: ${newProd.barcode})`);
         broadcastMessage({ type: 'catalog_updated', product: newProd });
-        res.writeHead(200, { 'Content-Type': 'application/json' });
+
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ success: true, product: newProd }));
       } catch (err) {
-        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
+  if (pathname === '/api/products' && req.method === 'DELETE') {
+    const id = parsedUrl.searchParams.get('id');
+    if (id) {
+      let products = getProducts();
+      products = products.filter(p => p.id !== Number(id));
+      saveProducts(products);
+      console.log(`[📦 Product Deleted]: ID ${id}`);
+      broadcastMessage({ type: 'catalog_updated' });
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ success: true }));
+      return;
+    }
+  }
+
+  // 4b. API: Customers & Udhar Ledger
+  if (pathname === '/api/customers' && req.method === 'GET') {
+    const customers = getCustomers();
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify(customers));
+    return;
+  }
+
+  if (pathname === '/api/customers' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const custData = JSON.parse(body);
+        const customers = getCustomers();
+        let existingIdx = -1;
+        if (custData.id) {
+          existingIdx = customers.findIndex(c => c.id === Number(custData.id));
+        } else if (custData.phone) {
+          existingIdx = customers.findIndex(c => c.phone === custData.phone);
+        }
+
+        if (existingIdx >= 0) {
+          customers[existingIdx] = { ...customers[existingIdx], ...custData };
+        } else {
+          custData.id = custData.id || Date.now();
+          custData.current_balance = custData.current_balance || 0;
+          customers.push(custData);
+        }
+        saveCustomers(customers);
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ success: true, customer: custData }));
+      } catch (err) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ error: err.message }));
       }
     });

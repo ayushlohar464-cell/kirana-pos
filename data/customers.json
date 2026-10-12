@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "name": "Ramesh Patel",
+    "phone": "9820011223",
+    "address": "Flat 102, Shanti Niwas",
+    "credit_limit": 500000,
+    "current_balance": 145000,
+    "is_active": 1
+  },
+  {
+    "id": 2,
+    "name": "Sanjay Shinde",
+    "phone": "9833445566",
+    "address": "Shop 4, Station Road",
+    "credit_limit": 300000,
+    "current_balance": 52000,
+    "is_active": 1
+  },
+  {
+    "id": 3,
+    "name": "Pooja Kulkarni",
+    "phone": "9819283746",
+    "address": "Building B, Sector 3",
+    "credit_limit": 200000,
+    "current_balance": 0,
+    "is_active": 1
+  }
+]

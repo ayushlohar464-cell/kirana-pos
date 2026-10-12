@@ -25,7 +25,44 @@ if (typeof window.api === 'undefined') {
   const getStored = (key) => JSON.parse(localStorage.getItem(key) || '[]');
   const setStored = (key, val) => localStorage.setItem(key, JSON.stringify(val));
 
-  function initBrowserStorage() {
+  async function initBrowserStorage() {
+    // 1. Fetch live products from server catalog
+    try {
+      const pRes = await fetch('/api/products');
+      if (pRes.ok) {
+        const serverProds = await pRes.json();
+        if (Array.isArray(serverProds) && serverProds.length > 0) {
+          setStored(STORAGE_KEYS.PRODUCTS, serverProds);
+        }
+      }
+    } catch (e) {
+      console.warn('Initial product sync error (using local cache):', e);
+    }
+
+    // 2. Fetch live customers from server
+    try {
+      const cRes = await fetch('/api/customers');
+      if (cRes.ok) {
+        const serverCusts = await cRes.json();
+        if (Array.isArray(serverCusts) && serverCusts.length > 0) {
+          setStored(STORAGE_KEYS.CUSTOMERS, serverCusts);
+        }
+      }
+    } catch (e) {
+      console.warn('Initial customer sync error (using local cache):', e);
+    }
+
+    // 3. Fetch live settings from server
+    try {
+      const sRes = await fetch('/api/settings');
+      if (sRes.ok) {
+        const serverSettings = await sRes.json();
+        if (serverSettings && serverSettings.shop_name) {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(serverSettings));
+        }
+      }
+    } catch (e) {}
+
     if (!localStorage.getItem(STORAGE_KEYS.PRODUCTS)) {
       const defaultProducts = [
         { id: 1, quick_code: '1', name: 'Madhur Pure Sugar / Chini', name_regional: 'मधुर साखर', barcode: '890103000002', sku: 'SUGAR-1K', category_id: 5, category_name: 'Sugar & Salt', unit_code: 'kg', purchase_cost: 3800, selling_price: 4400, mrp: 4800, tax_rate: 0, current_stock: 120, min_stock_alert: 15, is_active: 1 },
@@ -182,19 +219,32 @@ if (typeof window.api === 'undefined') {
         const term = q.trim().toLowerCase();
         return all.filter(p =>
           (p.quick_code && String(p.quick_code).trim().toLowerCase() === term) ||
-          p.name.toLowerCase().includes(term) ||
+          (p.name && p.name.toLowerCase().includes(term)) ||
           (p.name_regional && p.name_regional.toLowerCase().includes(term)) ||
+          (p.name_mr && p.name_mr.toLowerCase().includes(term)) ||
           (p.barcode && p.barcode.includes(term)) ||
           (p.sku && p.sku.toLowerCase().includes(term))
         );
       },
       getProducts: async ({ query = '', category_id = null } = {}) => {
+        try {
+          const res = await fetch('/api/products');
+          if (res.ok) {
+            const serverProds = await res.json();
+            if (Array.isArray(serverProds) && serverProds.length > 0) {
+              setStored(STORAGE_KEYS.PRODUCTS, serverProds);
+            }
+          }
+        } catch (e) {}
+
         let prods = getStored(STORAGE_KEYS.PRODUCTS);
         if (query) {
           const t = query.trim().toLowerCase();
           prods = prods.filter(p => 
             (p.quick_code && String(p.quick_code).trim().toLowerCase() === t) ||
-            p.name.toLowerCase().includes(t) || 
+            (p.name && p.name.toLowerCase().includes(t)) || 
+            (p.name_regional && p.name_regional.toLowerCase().includes(t)) ||
+            (p.name_mr && p.name_mr.toLowerCase().includes(t)) ||
             (p.barcode && p.barcode.includes(t))
           );
         }
@@ -210,31 +260,64 @@ if (typeof window.api === 'undefined') {
       getProductByBarcode: async (barcode) => {
         const prods = getStored(STORAGE_KEYS.PRODUCTS);
         const b = String(barcode).trim().toLowerCase();
-        return prods.find(p => 
+        let found = prods.find(p => 
           (p.quick_code && String(p.quick_code).trim().toLowerCase() === b) ||
           p.barcode === barcode || 
           p.sku === barcode
-        ) || null;
+        );
+        if (!found) {
+          try {
+            const res = await fetch('/api/scan', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ barcode: String(barcode).trim() })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.found && data.product) {
+                found = data.product;
+              }
+            }
+          } catch (e) {}
+        }
+        return found || null;
       },
       saveProduct: async (p) => {
+        let savedProd = { ...p };
+        try {
+          const res = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(p),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.product) {
+              savedProd = data.product;
+            }
+          }
+        } catch (e) {
+          console.warn('Network error saving product to server, saving locally:', e);
+          if (!savedProd.id) savedProd.id = Date.now();
+        }
+
         const prods = getStored(STORAGE_KEYS.PRODUCTS);
-        if (p.id) {
-          const idx = prods.findIndex(x => x.id === p.id);
-          if (idx !== -1) prods[idx] = { ...prods[idx], ...p };
+        const idx = prods.findIndex(x => (savedProd.id && x.id === savedProd.id) || (savedProd.barcode && x.barcode === savedProd.barcode));
+        if (idx !== -1) {
+          prods[idx] = { ...prods[idx], ...savedProd };
         } else {
-          p.id = Date.now();
-          prods.push(p);
+          prods.push(savedProd);
 
           // Add opening stock movement
-          if (p.current_stock > 0) {
+          if (savedProd.current_stock > 0) {
             const movements = getStored(STORAGE_KEYS.STOCK_MOVEMENTS);
             movements.unshift({
               id: Date.now(),
-              product_name: p.name,
-              unit_code: p.unit_code,
+              product_name: savedProd.name,
+              unit_code: savedProd.unit_code,
               movement_type: 'opening',
-              quantity_change: p.current_stock,
-              resulting_stock: p.current_stock,
+              quantity_change: savedProd.current_stock,
+              resulting_stock: savedProd.current_stock,
               reason: 'Initial opening stock',
               username: 'दुकान मालक (पप्पा)',
               created_at: new Date().toISOString(),
@@ -243,12 +326,21 @@ if (typeof window.api === 'undefined') {
           }
         }
         setStored(STORAGE_KEYS.PRODUCTS, prods);
-        return p;
+        return savedProd;
       },
       toggleProductActive: async (id) => {
         const prods = getStored(STORAGE_KEYS.PRODUCTS);
         const item = prods.find(x => x.id === id);
-        if (item) item.is_active = item.is_active ? 0 : 1;
+        if (item) {
+          item.is_active = item.is_active ? 0 : 1;
+          try {
+            await fetch('/api/products', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(item),
+            });
+          } catch (e) {}
+        }
         setStored(STORAGE_KEYS.PRODUCTS, prods);
         return { id, is_active: item ? item.is_active : 1 };
       },
@@ -476,19 +568,47 @@ if (typeof window.api === 'undefined') {
 
     // ==================== PARTIES (CUSTOMERS & SUPPLIERS) ====================
     parties: {
-      getCustomers: async () => getStored(STORAGE_KEYS.CUSTOMERS),
+      getCustomers: async () => {
+        try {
+          const res = await fetch('/api/customers');
+          if (res.ok) {
+            const custs = await res.json();
+            if (Array.isArray(custs) && custs.length > 0) {
+              setStored(STORAGE_KEYS.CUSTOMERS, custs);
+              return custs;
+            }
+          }
+        } catch (e) {}
+        return getStored(STORAGE_KEYS.CUSTOMERS);
+      },
       saveCustomer: async (c) => {
+        let savedCust = { ...c };
+        try {
+          const res = await fetch('/api/customers', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(c),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.customer) {
+              savedCust = data.customer;
+            }
+          }
+        } catch (e) {
+          if (!savedCust.id) savedCust.id = Date.now();
+        }
+
         const custs = getStored(STORAGE_KEYS.CUSTOMERS);
-        if (c.id) {
-          const idx = custs.findIndex(x => x.id === c.id);
-          if (idx !== -1) custs[idx] = { ...custs[idx], ...c };
+        const idx = custs.findIndex(x => (savedCust.id && x.id === savedCust.id) || (savedCust.phone && x.phone === savedCust.phone));
+        if (idx !== -1) {
+          custs[idx] = { ...custs[idx], ...savedCust };
         } else {
-          c.id = Date.now();
-          c.current_balance = 0;
-          custs.push(c);
+          savedCust.current_balance = savedCust.current_balance || 0;
+          custs.push(savedCust);
         }
         setStored(STORAGE_KEYS.CUSTOMERS, custs);
-        return c;
+        return savedCust;
       },
       getCustomerLedger: async (id) => {
         const custs = getStored(STORAGE_KEYS.CUSTOMERS);
@@ -752,4 +872,36 @@ if (typeof window.api === 'undefined') {
       close: () => window.close(),
     },
   };
+
+  // ==================== MULTI-DEVICE LIVE SYNC (SSE) ====================
+  try {
+    const sseSync = new EventSource('/api/scan-stream');
+    sseSync.onmessage = async (e) => {
+      if (!e.data || e.data.startsWith(':')) return;
+      try {
+        const payload = JSON.parse(e.data);
+        if (payload.type === 'catalog_updated') {
+          console.log('[🔄 Multi-Device Sync]: Catalog updated on another phone/PC. Refreshing...');
+          try {
+            const res = await fetch('/api/products');
+            if (res.ok) {
+              const freshProds = await res.json();
+              if (Array.isArray(freshProds)) {
+                setStored(STORAGE_KEYS.PRODUCTS, freshProds);
+              }
+            }
+          } catch (err) {}
+
+          // Refresh Baba Quick Bar
+          if (window.posEngine && typeof window.posEngine.renderBabaQuickBar === 'function') {
+            window.posEngine.renderBabaQuickBar();
+          }
+          // Refresh Products Table if open
+          if (window.app && typeof window.app.loadProductsList === 'function') {
+            window.app.loadProductsList();
+          }
+        }
+      } catch (err) {}
+    };
+  } catch (err) {}
 }
